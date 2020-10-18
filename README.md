@@ -585,7 +585,7 @@ Here are the most basic steps to perform detection:
         from yolo_tf2.core.detector import Detector
         
         
-        p = Detector(
+        detector = Detector(
             input_shape=(416, 416, 3),
             model_configuration='/path/to/DarkNet/yolo_version.cfg,
             '/path/to/classes_file.txt',
@@ -599,12 +599,12 @@ Here are the most basic steps to perform detection:
 A) Photos:
 
     photos = ['photo/path1', 'photo/path2']
-    p.predict_photos(photos=photos,
+    detector.predict_photos(photos=photos,
                      trained_weights='/path/to/trained/weights')  # .tf or yolov3.weights(80 classes)
 
 B) Video
 
-    p.detect_video(
+    detector.detect_video(
         '/path/to/target/vid',
         '/path/to/trained/weights.tf',
     )
