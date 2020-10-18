@@ -1,13 +1,13 @@
+from yolo_tf2.utils.common import default_logger
 import matplotlib.pyplot as plt
+from pathlib import Path
 import seaborn as sns
 import pandas as pd
 import numpy as np
 import imagesize
 import cv2
-import os
 import sys
-from pathlib import Path
-from Helpers.utils import default_logger
+import os
 
 if sys.platform == 'darwin':
     plt.switch_backend('Qt5Agg')
@@ -15,7 +15,7 @@ if sys.platform == 'darwin':
 
 def save_fig(title, save_figures=True):
     """
-    Save generated figures to Output folder.
+    Save generated figures to output folder.
     Args:
         title: Figure title also the image to save file name.
         save_figures: If True, figure will be saved
@@ -25,7 +25,7 @@ def save_fig(title, save_figures=True):
     """
     if save_figures:
         saving_path = str(
-            Path(os.path.join('..', 'Output', 'Plots', f'{title}.png'))
+            Path(os.path.join('output', 'plots', f'{title}.png'))
             .absolute()
             .resolve()
         )
@@ -48,7 +48,7 @@ def visualize_box_relative_sizes(frame, save_result=True):
     """
     title = f'Relative width and height for {frame.shape[0]} boxes.'
     if os.path.exists(
-        os.path.join('..', 'Output', 'Plots', f'{title}.png')
+        os.path.join('output', 'plots', f'{title}.png')
     ) or (frame is None):
         return
     sns.scatterplot(
@@ -76,7 +76,7 @@ def visualize_k_means_output(centroids, frame, save_result=True):
         f'{centroids.shape[0]} Centroids representing relative anchor sizes.'
     )
     if os.path.exists(
-        os.path.join('..', 'Output', 'Plots', f'{title}.png')
+        os.path.join('output', 'plots', f'{title}.png')
     ) or (frame is None):
         return
     fig, ax = plt.subplots()
@@ -90,7 +90,7 @@ def visualize_boxes(relative_anchors, sample_image, save_result=True):
     """
     Visualize anchor boxes output of k-means.
     Args:
-        relative_anchors: Output of k-means.
+        relative_anchors: output of k-means.
         sample_image: Path to image to display as background.
         save_result: If True, figure will be saved
 
@@ -98,7 +98,7 @@ def visualize_boxes(relative_anchors, sample_image, save_result=True):
         None
     """
     title = 'Generated anchors relative to sample image size'
-    if os.path.exists(os.path.join('..', 'Output', 'Plots', f'{title}.png')):
+    if os.path.exists(os.path.join('output', 'plots', f'{title}.png')):
         return
     img = cv2.imread(sample_image)
     width, height = imagesize.get(sample_image)
@@ -123,7 +123,7 @@ def visualize_pr(calculated, save_results=True, fig_prefix=''):
     Args:
         calculated: pandas DataFrame with combined average precisions 
             that were calculated separately on each object class.
-        save_results: If True, plots will be saved to Output folder.
+        save_results: If True, plots will be saved to output folder.
         fig_prefix: str, prefix to add to save path.
 
     Returns:
@@ -197,15 +197,15 @@ def visualize_evaluation_stats(stats, fig_prefix='', save_results=True):
     Args:
         stats: pandas DataFrame with evaluation statistics.
         fig_prefix: str, prefix to add to save path.
-        save_results: If True, plots will be saved to Output folder.
+        save_results: If True, plots will be saved to output folder.
 
     Returns:
         None
     """
     plot_compare_bar('True Positives', stats, fig_prefix, 'False Positives')
     save_fig('True positives vs False positives.png', save_results)
-    plot_compare_bar('Actual', stats, fig_prefix, 'Detections')
-    save_fig('Actual vs Detections.png', save_results)
+    plot_compare_bar('Actual', stats, fig_prefix, 'detections')
+    save_fig('Actual vs detections.png', save_results)
     plot_compare_bar('Average Precision', stats, fig_prefix)
     save_fig(f'{fig_prefix} Average Precision.png', save_results)
 
@@ -232,7 +232,7 @@ def visualization_wrapper(to_visualize):
             visualize_k_means_output(*result)
             plt.show()
             visualize_boxes(
-                result[0], os.path.join('..', 'Samples', 'sample_image.png')
+                result[0], os.path.join('samples', 'sample_image.png')
             )
             plt.show()
         return result

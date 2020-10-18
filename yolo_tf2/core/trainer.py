@@ -1,11 +1,13 @@
-import tensorflow as tf
-import os
-import numpy as np
-import pandas as pd
-from pathlib import Path
-import sys
-
-sys.path.append('..')
+from yolo_tf2.utils.common import calculate_loss, timer, default_logger, activate_gpu
+from yolo_tf2.utils.dataset_handlers import read_tfr, save_tfr, get_feature_map
+from yolo_tf2.utils.common import transform_images, transform_targets
+from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
+from yolo_tf2.utils.annotation_parsers import parse_voc_folder
+from yolo_tf2.config.augmentation_options import augmentations
+from yolo_tf2.utils.anchors import k_means, generate_anchors
+from yolo_tf2.core.augmentor import DataAugment
+from yolo_tf2.core.evaluator import Evaluator
+from yolo_tf2.core.models import BaseModel
 from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
     TensorBoard,
@@ -13,17 +15,12 @@ from tensorflow.keras.callbacks import (
     Callback,
     EarlyStopping,
 )
+from pathlib import Path
+import tensorflow as tf
+import pandas as pd
+import numpy as np
 import shutil
-from Helpers.dataset_handlers import read_tfr, save_tfr, get_feature_map
-from Helpers.annotation_parsers import parse_voc_folder
-from Helpers.anchors import k_means, generate_anchors
-from Helpers.augmentor import DataAugment
-from Config.augmentation_options import augmentations
-from Main.models import BaseModel
-from Helpers.utils import transform_images, transform_targets
-from Helpers.annotation_parsers import adjust_non_voc_csv
-from Helpers.utils import calculate_loss, timer, default_logger, activate_gpu
-from Main.evaluator import Evaluator
+import os
 
 
 class Trainer(BaseModel):
@@ -53,7 +50,7 @@ class Trainer(BaseModel):
             input_shape: tuple, (n, n, c)
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
-            max_boxes: Maximum boxes of the TFRecords provided(if any) or
+            max_boxes: Maximum boxes of the tfrecords provided(if any) or
                 maximum boxes setting.
             iou_threshold: float, values less than the threshold are ignored.
             score_threshold: float, values less than the threshold are ignored.
@@ -75,7 +72,7 @@ class Trainer(BaseModel):
         self.train_tf_record = train_tf_record
         self.valid_tf_record = valid_tf_record
         self.image_folder = (
-            Path(os.path.join('..', 'Data', 'Photos')).absolute().resolve()
+            Path(os.path.join('data', 'photos')).absolute().resolve()
         )
         self.image_width = image_width
         self.image_height = image_height
@@ -106,11 +103,11 @@ class Trainer(BaseModel):
             if check:
                 raise ValueError(f'Got more than one configuration')
             labels_frame = parse_voc_folder(
-                os.path.join('..', 'Data', 'XML Labels'),
-                os.path.join('..', 'Config', 'voc_conf.json'),
+                os.path.join('data', 'xml_labels'),
+                os.path.join('config', 'voc_conf.json'),
             )
             labels_frame.to_csv(
-                os.path.join('..', 'Output', 'Data', 'parsed_from_xml.csv'),
+                os.path.join('output', 'data', 'parsed_from_xml.csv'),
                 index=False,
             )
             check += 1
@@ -247,7 +244,7 @@ class Trainer(BaseModel):
             display_stats: If True evaluation statistics will be printed.
             plot_stats: If True, evaluation statistics will be plotted including
                 precision and recall curves and mAP
-            save_figs: If True, resulting plots will be save to Output folder.
+            save_figs: If True, resulting plots will be save to output folder.
 
         Returns:
             stats, map_score.
@@ -276,10 +273,10 @@ class Trainer(BaseModel):
                 )
                 return
             training_actual = pd.read_csv(
-                os.path.join('..', 'Data', 'TFRecords', 'training_data.csv')
+                os.path.join('data', 'tfrecords', 'training_data.csv')
             )
             valid_actual = pd.read_csv(
-                os.path.join('..', 'Data', 'TFRecords', 'test_data.csv')
+                os.path.join('data', 'tfrecords', 'test_data.csv')
             )
             training_stats, training_map = evaluator.calculate_map(
                 training_predictions,
@@ -301,7 +298,7 @@ class Trainer(BaseModel):
             )
             return training_stats, training_map, valid_stats, valid_map
         actual_data = pd.read_csv(
-            os.path.join('..', 'Data', 'TFRecords', 'full_data.csv')
+            os.path.join('data', 'tfrecords', 'full_data.csv')
         )
         if predictions.empty:
             default_logger.info('Aborting evaluations, no detections found')
@@ -319,15 +316,15 @@ class Trainer(BaseModel):
     @staticmethod
     def clear_outputs():
         """
-        Clear Output folder.
+        Clear output folder.
 
         Returns:
             None
         """
-        for folder_name in os.listdir(os.path.join('..', 'Output')):
+        for folder_name in os.listdir(os.path.join('..', 'output')):
             if not folder_name.startswith('.'):
                 full_path = (
-                    Path(os.path.join('..', 'Output', folder_name))
+                    Path(os.path.join('output', folder_name))
                     .absolute()
                     .resolve()
                 )
@@ -347,7 +344,7 @@ class Trainer(BaseModel):
         Args:
             new_dataset_conf: A dictionary containing the following keys:
                 - dataset_name(required) str representing a name for the dataset
-                - test_size(optional) ex: 0.1
+                - test_size(required) ex: 0.1
                 - augmentation(optional) True or False
                 - sequences(required if augmentation is True)
                 - aug_workers(optional if augmentation is True) defaults to 32.
@@ -359,14 +356,14 @@ class Trainer(BaseModel):
                     ['Image Path', 'Object Name', 'Image Width', 'Image Height',
                     'X_min', 'Y_min', 'X_max', 'Y_max', 'Relative Width', 'Relative Height',
                     'Object ID']
-                    - from_xml: True or False to parse from XML Labels folder.
+                    - from_xml: True or False to parse from xml_labels folder.
         """
         default_logger.info(f'Generating new dataset ...')
         test_size = new_dataset_conf.get('test_size')
         labels_frame = self.generate_new_frame(new_dataset_conf)
         save_tfr(
             labels_frame,
-            os.path.join('..', 'Data', 'TFRecords'),
+            os.path.join('data', 'tfrecords'),
             new_dataset_conf['dataset_name'],
             test_size,
             self,
@@ -374,7 +371,7 @@ class Trainer(BaseModel):
 
     def check_tf_records(self):
         """
-        Ensure TFRecords are specified to start training.
+        Ensure tfrecords are specified to start training.
 
         Returns:
             None
@@ -405,7 +402,7 @@ class Trainer(BaseModel):
                 verbose=1,
                 save_weights_only=True,
             ),
-            TensorBoard(log_dir=os.path.join('..', 'Logs')),
+            TensorBoard(log_dir=os.path.join('..', 'yolo_logs')),
             EarlyStopping(monitor='val_loss', patience=6, verbose=1),
         ]
 
@@ -487,7 +484,7 @@ class Trainer(BaseModel):
         ]
         self.training_model.compile(optimizer=optimizer, loss=loss)
         checkpoint_path = os.path.join(
-            '..', 'Models', f'{dataset_name or "trained"}_model.tf'
+            'models', f'{dataset_name or "trained"}_model.tf'
         )
         callbacks = self.create_callbacks(checkpoint_path)
         if n_epoch_eval:
@@ -578,7 +575,7 @@ class MidTrainingEvaluator(Callback, Trainer):
             valid_tf_record: TFRecord file.
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
-            max_boxes: Maximum boxes of the TFRecords provided(if any) or
+            max_boxes: Maximum boxes of the tfrecords provided(if any) or
                 maximum boxes setting.
             iou_threshold: float, values less than the threshold are ignored.
             score_threshold: float, values less than the threshold are ignored.
@@ -592,7 +589,7 @@ class MidTrainingEvaluator(Callback, Trainer):
             display_stats: If True, statistics will be displayed at the end.
             plot_stats: If True, precision and recall curves as well as
                 comparison bar charts will be plotted.
-            save_figs: If True and display_stats, plots will be save to Output folder
+            save_figs: If True and display_stats, plots will be save to output folder
             weights_file: .tf file(most recent checkpoint)
         """
         Trainer.__init__(
@@ -638,7 +635,7 @@ class MidTrainingEvaluator(Callback, Trainer):
         evaluation_dir = str(
             Path(
                 os.path.join(
-                    '..', 'Output', 'Evaluation', f'epoch-{epoch}-evaluation'
+                    'output', 'evaluation', f'epoch-{epoch}-evaluation'
                 )
             )
             .absolute()
@@ -647,19 +644,19 @@ class MidTrainingEvaluator(Callback, Trainer):
         os.mkdir(evaluation_dir)
         current_predictions = [
             str(
-                Path(os.path.join('..', 'Output', 'Data', item))
+                Path(os.path.join('output', 'data', item))
                 .absolute()
                 .resolve()
             )
-            for item in os.listdir(os.path.join('..', 'Output', 'Data'))
+            for item in os.listdir(os.path.join('output', 'data'))
         ]
         current_figures = [
             str(
-                Path(os.path.join('..', 'Output', 'Plots', item))
+                Path(os.path.join('output', 'plots', item))
                 .absolute()
                 .resolve()
             )
-            for item in os.listdir(os.path.join('..', 'Output', 'Plots'))
+            for item in os.listdir(os.path.join('output', 'plots'))
         ]
         current_files = current_predictions + current_figures
         for file_path in current_files:

@@ -70,7 +70,7 @@
 * [Show your support](#show-your-support)
 * [Contact](#contact)
 
-![GitHub Logo](/Samples/detections.png)
+![GitHub Logo](/samples/detections.png)
 
 <!-- GETTING STARTED -->
 ## **Getting started**
@@ -94,16 +94,20 @@ Here are the **packages** you'll need to install before starting to use the dete
 ### **Installation**
 
 1. **Clone the repo**
+
 ```sh
 git clone https://github.com/emadboctorx/yolov3-keras-tf2/
 ```
-2. **Install requirements**
+
+2. **Install**
+
 ```sh
-pip install -r requirements.txt
+python3 setup.py install
 ```
-**or**
+3. **Verify installation**
+
 ```sh
-conda install --file requirements.txt
+python3 -c 'import yolo_tf2'
 ```
 
 <!-- DESCRIPTION -->
@@ -123,10 +127,14 @@ this software however you like.
 
 ## **Updates**
 
-### 02/06/2020
-- YoloV4 training is currently supported.
+### 2020-10-18
+- Add setup.py, direct installation through python3 setup.py install
+- Restructure package folders
 
-### 29/05/2020
+### 2020-06-02
+- Add yolov4 support
+
+### 2020-05-29
 
 - Models are loaded directly from DarkNet .cfg files
 - YoloV4 is currently supported(inference only, no training)
@@ -290,29 +298,29 @@ anchors with process visualization.
 
 * **k-means visualization:**
 
-![GitHub Logo](/Samples/anchors.png)
+![GitHub Logo](/samples/anchors.png)
 
 * **Generated anchors:**
 
-![GitHub Logo](/Samples/anchors_sample.png)
+![GitHub Logo](/samples/anchors_sample.png)
 
 * **Precision and recall curves:**
 
-![GitHub Logo](/Samples/pr.png)
+![GitHub Logo](/samples/pr.png)
 
 * **Evaluation bar charts:**
 
-![GitHub Logo](/Samples/map.png)
+![GitHub Logo](/samples/map.png)
 
 * **Actual vs. detections:**
 
-![GitHub Logo](/Samples/true_false.png)
+![GitHub Logo](/samples/true_false.png)
 
 * **Augmentation options visualization:**
 
 Double screen visualization(before/after) image like the following example:
 
-![GitHub Logo](/Samples/aug1.png)
+![GitHub Logo](/samples/aug1.png)
 
 * **Dataset pre and post augmentation visualization with bounding boxes:**
 
@@ -340,7 +348,7 @@ Special thanks to the amazing [imgaug](https://github.com/aleju/imgaug) creators
 an augmentation pipeline(optional) is available and NOTE that the augmentation is
 conducted **before** the training not during the training due to technical complications
 to integrate tensorflow and imgaug. If you have a small dataset, augmentation is an option
-and it can be preconfigured before the training check [Augmentor.md](Docs/Augmentor.md)
+and it can be preconfigured before the training check [Augmentor.md](docs/Augmentor.md)
 
 ### **`logging`**
 
@@ -353,7 +361,7 @@ new anchor generation, new dataset(TFRecord(s)) creation, mAP evaluation
 mid-training and post training. So all you have to do is place images
 in Data > Photos, provide the configuration that suits you and start the training
 process, all operations are managed from the same place for convenience.
-For detailed instructions check [Trainer.md](Docs/Trainer.md)
+For detailed instructions check [Trainer.md](docs/Trainer.md)
 
 ### **Stop and resume training support**
 
@@ -368,9 +376,9 @@ large datasets as it predicts every image in the dataset) and one evaluation
 at the end which is optional as well. Training and validation datasets
 can be evaluated separately and calculate mAP(mean average precision) as well
 as precision and recall curves for every class in the model, 
-check [Evaluator.md](Docs/Evaluator.md)
+check [Evaluator.md](docs/Evaluator.md)
 
-![GitHub Logo](/Samples/eval.png)
+![GitHub Logo](/samples/eval.png)
 
 ### **labelpix support**
 
@@ -383,7 +391,7 @@ images if you need to preview any stage of the training/augmentation/evaluation/
 ### **Photo & video detection**
 
 Detections can be performed on photos or videos using Predictor class
-check [Predictor.md](/Docs/Predictor.md)
+check [Predictor.md](/docs/Predictor.md)
 
 ## **Usage**
 
@@ -391,10 +399,10 @@ check [Predictor.md](/Docs/Predictor.md)
 
 **Here are the most basic steps to train using a custom dataset:**
 
-1- Copy images to Data > Photos
+1- Copy images to data > photos
 
 2- If labels are in the XML VOC [format](#csv-xml-annotation-parsers),
-copy label xml files to Data > Labels
+copy label xml files to data > labels
 
 3- Create classes .txt file that contains classes delimited by \n
 
@@ -410,11 +418,13 @@ copy label xml files to Data > Labels
 
 4- Create a training instance and specify `input_shape`, `classes_file`,
 `image_width` and `image_height`
-
+    
+    from yolo_tf2.core.trainer import Trainer
+    
 
     trainer = Trainer(
              input_shape=(416, 416, 3),
-             model_configuration='../Config/yolo3.cfg',
+             model_configuration='yolo_tf2/config/yolo3.cfg',
              classes_file='/path/to/classes_file.txt',
              image_width=1344,  # The original image width
              image_height=756   # The original image height
@@ -434,12 +444,12 @@ or
 
 and
 
-- `test_size`: percentage of the validation split ex: 0.1(optional)
+- `test_size`: percentage of the validation split ex: 0.1(required)
 - `augmentation`: `True` (optional)
 
 and if `augmentation` this implies the following:
 
-- `sequences`: (required) A list of augmentation sequences check [Augmentor.md](Docs/Augmentor.md) 
+- `sequences`: (required) A list of augmentation sequences check [Augmentor.md](docs/Augmentor.md) 
 - `aug_workers`: (optional) defaults to 32 parallel augmentations.
 - `aug_batch_size`: (optional) this is the augmentation batch size defaults to 64 images to load at once.
 
@@ -451,7 +461,7 @@ and if `augmentation` this implies the following:
                     'augmentation': True,
       }
 
-6- Create new anchor generation configuration(dict) that contains the following keys:
+6- Create new anchor generation configuration(dict) that contains the following keys(optional):
 
 - `anchor_no`: number of anchors(should be 9)
 and one of the following:
@@ -472,7 +482,8 @@ contains 80 classes(COCO classes) or you'll get an error. Transfer learning
 to models with different number of classes will be supported in future versions
 of the program.
 
-    tr.train(epochs=100, 
+    trainer.train(
+             epochs=100, 
              batch_size=8, 
              learning_rate=1e-3, 
              dataset_name='dataset_name', 
@@ -486,9 +497,9 @@ of the program.
 
 After the training completes:
 
-1. The trained model is saved in Models folder(which you can use to resume training later/predict photos or videos)
-2. The resulting TFRecords and their corresponding csv data are saved in Data > TFRecords
-3. The resulting figures and evaluation results are saved in Output folder.
+1. The trained model is saved in models folder(which you can use to resume training later/predict photos or videos)
+2. The resulting TFRecords and their corresponding csv data are saved in data > tfrecords
+3. The resulting figures and evaluation results are saved in output folder.
 
 ### **Augmentation**
 
@@ -497,17 +508,17 @@ After the training completes:
 If you need to augment photos and take your time to examine/visualize the results,
 here are the steps:
 
-1- Copy images to Data > Photos or specify `image_folder` param
+1- Copy images to data > photos or specify `image_folder` param
 
 2- Ensure you have a csv file containing the labels in the format 
 mentioned [here](#csv-xml-annotation-parsers), if you have labels
-in xml VOC format, you can easily convert them using Helpers > annotation_parsers.py > 
+in xml VOC format, you can easily convert them using utils > annotation_parsers.py > 
 `parse_voc_folder()` (everything is explained in the docstrings)
 
 3- Create augmentation instance:
 
-    from Config.augmentation_options import augmentations
-    from Helpers.augmentor import DataAugment
+    from yolo_tf2.config.augmentation_options import augmentations
+    from yolo_tf2.core.augmentor import DataAugment
     
     
     aug = DataAugment(
@@ -516,7 +527,7 @@ in xml VOC format, you can easily convert them using Helpers > annotation_parser
     aug.create_sequences(sequences)  # check the docs
     aug.augment_photo_folder()
 
-After augmentation you'll find augmented images in the Data > Photos folder
+After augmentation you'll find augmented images in the data > photos folder
 or the folder you specified(if you did specify one) 
 
 And you should find 2 csv files in the Output folder: 
@@ -535,10 +546,14 @@ in the training.
 Here are the most basic steps to evaluate a trained model:
 
 1. Create an evaluation instance:
-
+       
+ 
+       from yolo_tf2.core.evaluator import Evaluator
+       
+       
        evaluator = Evaluator(
                    input_shape=(416, 416, 3),
-                   model_configuration='../Config/yolo3.cfg',
+                   model_configuration='yolo_tf2/config/yolo3.cfg',
                    train_tf_record='/path/to/train.tfrecord',
                    valid_tf_record='/path/to/valid.tfrecord',
                    classes_file='/path/to/classes.txt',
@@ -548,8 +563,8 @@ Here are the most basic steps to evaluate a trained model:
                    
 2. Read actual and prediction results(that resulted from the training)
 
-       actual = pd.read_csv('../Data/TFRecords/full_data.csv')
-       preds = pd.read_csv('../Output/full_dataset_predictions.csv')
+       actual = pd.read_csv('data/tfrecords/full_data.csv')
+       preds = pd.read_csv('output/full_dataset_predictions.csv')
        
 3. Calculate mAP(mean average precision):
 
@@ -559,7 +574,7 @@ Here are the most basic steps to evaluate a trained model:
                   min_overlaps=0.5, 
                   display_stats=True)
 
-After evaluation, you'll find resulting plots and predictions in the Output folder.
+After evaluation, you'll find resulting plots and predictions in the output folder.
 
 ### **Detection**
 
@@ -567,6 +582,9 @@ Here are the most basic steps to perform detection:
 
 1. Create a detection instance:
 
+        from yolo_tf2.core.detector import Detector
+        
+        
         p = Detector(
             input_shape=(416, 416, 3),
             model_configuration='/path/to/DarkNet/yolo_version.cfg,
@@ -592,7 +610,7 @@ B) Video
     )
 
 After predictions is complete you'll find photos/video
- in Output > Detections
+ in output > detections
 
 ## **Contributing**
 

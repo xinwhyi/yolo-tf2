@@ -47,7 +47,7 @@ def set_voc_tags(
     Returns:
         None.
     """
-    if conf_file in os.listdir('.'):
+    if conf_file in os.listdir(''):
         os.remove(os.path.join(os.getcwd(), conf_file))
     conf = {
         'Tree': {

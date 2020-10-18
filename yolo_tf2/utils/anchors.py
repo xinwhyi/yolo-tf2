@@ -1,6 +1,6 @@
 import numpy as np
-from Helpers.visual_tools import visualization_wrapper
-from Helpers.utils import default_logger, timer
+from yolo_tf2.utils.visual_tools import visualization_wrapper
+from yolo_tf2.utils.common import default_logger, timer
 
 
 def iou(relative_sizes, centroids, k):
@@ -79,7 +79,7 @@ def generate_anchors(width, height, centroids):
     Args:
         width: Width of image.
         height: Height of image.
-        centroids: Output of k-means.
+        centroids: output of k-means.
 
     Returns:
         2D array of resulting anchors.

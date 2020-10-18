@@ -1,3 +1,4 @@
+from yolo_tf2.utils.common import get_boxes, timer, default_logger, Mish
 from tensorflow.keras.layers import (
     ZeroPadding2D,
     BatchNormalization,
@@ -10,18 +11,14 @@ from tensorflow.keras.layers import (
     Lambda,
     MaxPooling2D,
 )
-import sys
-
-sys.path.append('..')
 from tensorflow.keras.regularizers import l2
+from collections import defaultdict
 from tensorflow.keras import Model
 import tensorflow as tf
+import configparser
 import numpy as np
 import os
 import io
-import configparser
-from collections import defaultdict
-from Helpers.utils import get_boxes, timer, default_logger, Mish
 
 
 class BaseModel:

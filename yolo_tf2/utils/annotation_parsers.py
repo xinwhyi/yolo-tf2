@@ -1,12 +1,11 @@
+from yolo_tf2.utils.common import ratios_to_coordinates, default_logger
+from yolo_tf2.utils.visual_tools import visualization_wrapper
 from xml.etree import ElementTree
-from time import perf_counter
+from pathlib import Path
 import pandas as pd
+import numpy as np
 import json
 import os
-import numpy as np
-from pathlib import Path
-from Helpers.visual_tools import visualization_wrapper
-from Helpers.utils import ratios_to_coordinates, default_logger
 
 
 def get_tree_item(parent, tag, file_path, find_all=False):
@@ -103,7 +102,7 @@ def adjust_frame(frame, cache_file=None):
         object_id += 1
     if cache_file:
         frame.to_csv(
-            os.path.join('..', 'Output', 'Data', cache_file), index=False
+            os.path.join('output', 'data', cache_file), index=False
         )
     print(f'Parsed labels:\n{frame["Object Name"].value_counts()}')
     return frame
@@ -121,7 +120,7 @@ def parse_voc_folder(folder_path, voc_conf):
         pandas DataFrame with the annotations.
     """
     assert os.path.exists(folder_path)
-    cache_path = os.path.join('..', 'Output', 'Data', 'parsed_from_xml.csv')
+    cache_path = os.path.join('output', 'data', 'parsed_from_xml.csv')
     if os.path.exists(cache_path):
         frame = pd.read_csv(cache_path)
         print(

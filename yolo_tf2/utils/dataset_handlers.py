@@ -1,10 +1,10 @@
+from yolo_tf2.utils.common import default_logger
+from pathlib import Path
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 import hashlib
 import os
-from pathlib import Path
-from Helpers.utils import default_logger
 
 
 def get_feature_map():
@@ -145,7 +145,7 @@ def write_tf_record(output_path, groups, data, trainer=None):
         output_path: Full path to save.
         groups: pandas GroupBy object.
         data: pandas DataFrame
-        trainer: Main.Trainer object.
+        trainer: core.Trainer object.
 
     Returns:
         None
@@ -191,7 +191,7 @@ def write_tf_record(output_path, groups, data, trainer=None):
     print()
 
 
-def save_tfr(data, output_folder, dataset_name, test_size=None, trainer=None):
+def save_tfr(data, output_folder, dataset_name, test_size, trainer=None):
     """
     Transform and save dataset into TFRecord format.
     Args:
@@ -199,11 +199,14 @@ def save_tfr(data, output_folder, dataset_name, test_size=None, trainer=None):
         output_folder: Path to folder where TFRecord(s) will be saved.
         dataset_name: str name of the dataset.
         test_size: relative test subset size.
-        trainer: Main.Trainer object
+        trainer: core.Trainer object
 
     Returns:
         None
     """
+    assert (
+        0 < test_size < 1
+    ), f'test_size must be 0 < test_size < 1 and {test_size} is given'
     data['Object Name'] = data['Object Name'].apply(
         lambda x: x.encode('utf-8')
     )
@@ -212,45 +215,37 @@ def save_tfr(data, output_folder, dataset_name, test_size=None, trainer=None):
         data.dtypes[data.dtypes == 'int64'].index
     ].apply(abs)
     data.to_csv(
-        os.path.join('..', 'Data', 'TFRecords', 'full_data.csv'), index=False
+        os.path.join('data', 'tfrecords', 'full_data.csv'), index=False
     )
     groups = np.array(data.groupby('Image Path'))
     np.random.shuffle(groups)
-    if test_size:
-        assert (
-            0 < test_size < 1
-        ), f'test_size must be 0 < test_size < 1 and {test_size} is given'
-        separation_index = int((1 - test_size) * len(groups))
-        training_set = groups[:separation_index]
-        test_set = groups[separation_index:]
-        training_frame = pd.concat([item[1] for item in training_set])
-        test_frame = pd.concat([item[1] for item in test_set])
-        training_frame.to_csv(
-            os.path.join('..', 'Data', 'TFRecords', 'training_data.csv'),
-            index=False,
-        )
-        test_frame.to_csv(
-            os.path.join('..', 'Data', 'TFRecords', 'test_data.csv'),
-            index=False,
-        )
-        training_path = str(
-            Path(os.path.join(output_folder, f'{dataset_name}_train.tfrecord'))
-            .absolute()
-            .resolve()
-        )
-        test_path = str(
-            Path(os.path.join(output_folder, f'{dataset_name}_test.tfrecord'))
-            .absolute()
-            .resolve()
-        )
-        write_tf_record(training_path, training_set, data, trainer)
-        default_logger.info(f'Saved training TFRecord: {training_path}')
-        write_tf_record(test_path, test_set, data, trainer)
-        default_logger.info(f'Saved validation TFRecord: {test_path}')
-        return
-    tf_record_path = os.path.join(output_folder, f'{dataset_name}.tfrecord')
-    write_tf_record(tf_record_path, groups, data, trainer)
-    default_logger.info(f'Saved TFRecord {tf_record_path}')
+    separation_index = int((1 - test_size) * len(groups))
+    training_set = groups[:separation_index]
+    test_set = groups[separation_index:]
+    training_frame = pd.concat([item[1] for item in training_set])
+    test_frame = pd.concat([item[1] for item in test_set])
+    training_frame.to_csv(
+        os.path.join('data', 'tfrecords', 'training_data.csv'),
+        index=False,
+    )
+    test_frame.to_csv(
+        os.path.join('data', 'tfrecords', 'test_data.csv'),
+        index=False,
+    )
+    training_path = str(
+        Path(os.path.join(output_folder, f'{dataset_name}_train.tfrecord'))
+        .absolute()
+        .resolve()
+    )
+    test_path = str(
+        Path(os.path.join(output_folder, f'{dataset_name}_test.tfrecord'))
+        .absolute()
+        .resolve()
+    )
+    write_tf_record(training_path, training_set, data, trainer)
+    default_logger.info(f'Saved training TFRecord: {training_path}')
+    write_tf_record(test_path, test_set, data, trainer)
+    default_logger.info(f'Saved validation TFRecord: {test_path}')
 
 
 def read_tfr(

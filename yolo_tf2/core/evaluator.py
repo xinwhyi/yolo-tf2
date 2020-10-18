@@ -1,21 +1,18 @@
-import cv2
-import pandas as pd
-import numpy as np
-import tensorflow as tf
-import os
-import sys
-
-sys.path.append('..')
+from yolo_tf2.utils.visual_tools import visualize_pr, visualize_evaluation_stats
+from yolo_tf2.utils.dataset_handlers import read_tfr, get_feature_map
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from Main.models import BaseModel
-from Helpers.dataset_handlers import read_tfr, get_feature_map
-from Helpers.utils import (
+from yolo_tf2.core.models import BaseModel
+from yolo_tf2.utils.common import (
     transform_images,
     get_detection_data,
     default_logger,
     timer,
 )
-from Helpers.visual_tools import visualize_pr, visualize_evaluation_stats
+import tensorflow as tf
+import pandas as pd
+import numpy as np
+import cv2
+import os
 
 
 class Evaluator(BaseModel):
@@ -42,7 +39,7 @@ class Evaluator(BaseModel):
             classes_file: File containing class names \n delimited.
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
-            max_boxes: Maximum boxes of the TFRecords provided.
+            max_boxes: Maximum boxes of the tfrecords provided.
             iou_threshold: Minimum overlap value.
             score_threshold: Minimum confidence for detection to count
                 as true positive.
@@ -161,7 +158,7 @@ class Evaluator(BaseModel):
     ):
         """
         Make predictions on both training and validation data sets
-            and save results as csv in Output folder.
+            and save results as csv in output folder.
         Args:
             trained_weights: Trained .tf weights or .weights file(in case self.classes = 80).
             merge: If True a single file will be saved for training
@@ -205,15 +202,15 @@ class Evaluator(BaseModel):
         if merge:
             predictions = pd.concat([train_predictions, valid_predictions])
             save_path = os.path.join(
-                '..', 'Output', 'Data', 'full_dataset_predictions.csv'
+                'output', 'data', 'full_dataset_predictions.csv'
             )
             predictions.to_csv(save_path, index=False)
             return predictions
         train_path = os.path.join(
-            '..', 'Output', 'Data', 'train_dataset_predictions.csv'
+            'output', 'data', 'train_dataset_predictions.csv'
         )
         valid_path = os.path.join(
-            '..', 'Output', 'Data', 'valid_dataset_predictions.csv'
+            'output', 'data', 'valid_dataset_predictions.csv'
         )
         train_predictions.to_csv(train_path, index=False)
         valid_predictions.to_csv(valid_path, index=False)
@@ -422,7 +419,7 @@ class Evaluator(BaseModel):
             stats['Actual'] = len(
                 actual_data[actual_data["Object Name"] == class_name]
             )
-            stats['Detections'] = len(
+            stats['detections'] = len(
                 detection_data[detection_data["object_name"] == class_name]
             )
             stats['True Positives'] = len(

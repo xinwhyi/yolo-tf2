@@ -1,16 +1,16 @@
-import os
-import cv2
-import imagesize
-import numpy as np
-import pandas as pd
+from yolo_tf2.utils.common import ratios_to_coordinates, timer, default_logger
+from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from imgaug import augmenters as iaa
 from imgaug import parameters as iap
-import imgaug as ia
 from pathlib import Path
-from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from Helpers.utils import ratios_to_coordinates, timer, default_logger
-from Helpers.annotation_parsers import adjust_non_voc_csv
+import pandas as pd
+import imgaug as ia
+import numpy as np
+import imagesize
+import cv2
+import os
 
 
 class DataAugment:
@@ -35,18 +35,16 @@ class DataAugment:
             workers: Parallel threads.
             converted_coordinates_file: csv file containing converted from relative
             to coordinates.
-            image_folder: Folder containing images other than Data/Photos/
+            image_folder: Folder containing images other than data/photos/
         """
         assert all([ia, iaa, iap])
         self.labels_file = labels_file
         self.mapping = pd.read_csv(labels_file)
-        self.image_folder = (
-            Path(os.path.join('..', 'Data', 'Photos')).absolute().resolve()
-        )
+        self.image_folder = Path('data', 'photos').absolute().resolve()
         if image_folder:
             self.image_folder = Path(image_folder).absolute().resolve()
         self.image_paths = [
-            Path(os.path.join(self.image_folder, image)).absolute().resolve()
+            (Path(self.image_folder) / image).absolute().resolve()
             for image in os.listdir(self.image_folder)
             if not image.startswith('.')
         ]
@@ -373,7 +371,7 @@ class DataAugment:
     @timer(default_logger)
     def augment_photos_folder(self, batch_size=64, new_size=None):
         """
-        Augment photos in Data/Photos/
+        Augment photos in data/photos/
         Args:
             batch_size: Size of each augmentation batch.
             new_size: tuple, new image size.
@@ -402,7 +400,7 @@ class DataAugment:
             self.augmentation_data, columns=self.mapping.columns
         )
         saving_path = os.path.join(
-            '..', 'Output', 'Data', f'augmented_data_plus_original.csv'
+            'output', 'data', f'augmented_data_plus_original.csv'
         )
         combined = pd.concat([self.mapping, augmentation_frame])
         for item in ['bx', 'by', 'bw', 'bh']:

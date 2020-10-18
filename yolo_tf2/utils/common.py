@@ -1,21 +1,21 @@
+from tensorflow.python.util.tf_export import keras_export
+from tensorflow.python.keras.utils import tf_utils
+from xml.etree.ElementTree import SubElement
+from tensorflow.keras.layers import Layer
 import tensorflow as tf
 from tensorflow.keras.losses import (
     sparse_categorical_crossentropy,
     binary_crossentropy,
 )
-import logging
-from logging import handlers
-from time import perf_counter
-import os
-import numpy as np
-import pandas as pd
-from xml.etree.ElementTree import SubElement
 from xml.etree import ElementTree
-from lxml import etree
-from tensorflow.keras.layers import Layer
-from tensorflow.python.util.tf_export import keras_export
 import tensorflow_addons as tfa
-from tensorflow.python.keras.utils import tf_utils
+from time import perf_counter
+from logging import handlers
+from lxml import etree
+import pandas as pd
+import numpy as np
+import logging
+import os
 
 tfa.options.TF_ADDONS_PY_OPS = True
 
@@ -31,11 +31,11 @@ def get_logger():
         '%(asctime)s %(name)s.%(funcName)s +%(lineno)s: '
         '%(levelname)-8s [%(process)d] %(message)s'
     )
-    logger = logging.getLogger('session_log')
+    logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
-    file_title = os.path.join('Logs', 'session.log')
-    if 'Logs' not in os.listdir():
-        file_title = f'{os.path.join("..", file_title)}'
+    file_title = os.path.join('yolo_logs', 'session.log')
+    if 'yolo_logs' not in os.listdir():
+        os.mkdir('yolo_logs')
     file_handler = handlers.RotatingFileHandler(file_title, backupCount=10)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -270,7 +270,6 @@ def calculate_loss(anchors, classes=80, ignore_thresh=0.5):
         obj_loss = tf.reduce_sum(obj_loss, axis=(1, 2, 3))
         class_loss = tf.reduce_sum(class_loss, axis=(1, 2, 3))
         return xy_loss + wh_loss + obj_loss + class_loss
-
     return yolo_loss
 
 
@@ -397,7 +396,7 @@ def calculate_display_data(
     classes_file: .txt file containing object classes.
     img_width: Image width.
     img_height: Image height.
-    out: Output path.
+    out: output path.
 
     Returns:
          None

@@ -1,19 +1,16 @@
-import numpy as np
-import cv2
-import tensorflow as tf
-import os
-import sys
-
-sys.path.append('..')
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from Main.models import BaseModel
-from Helpers.utils import (
+from yolo_tf2.core.models import BaseModel
+from yolo_tf2.utils.common import (
     get_detection_data,
     activate_gpu,
     transform_images,
     default_logger,
     timer,
 )
+import tensorflow as tf
+import numpy as np
+import cv2
+import os
 
 
 class Detector(BaseModel):
@@ -39,7 +36,7 @@ class Detector(BaseModel):
             classes_file: File containing class names \n delimited.
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
-            max_boxes: Maximum boxes of the TFRecords provided(if any) or
+            max_boxes: Maximum boxes of the tfrecords provided(if any) or
                 maximum boxes setting.
             iou_threshold: float, values less than the threshold are ignored.
             score_threshold: float, values less than the threshold are ignored.
@@ -117,7 +114,7 @@ class Detector(BaseModel):
 
     def predict_on_image(self, image_path):
         """
-        Detect, draw detections and save result to Output folder.
+        Detect, draw detections and save result to output folder.
         Args:
             image_path: Path to image.
 
@@ -131,7 +128,7 @@ class Detector(BaseModel):
         detections, adjusted = self.detect_image(image_data, image_name)
         self.draw_on_image(adjusted, detections)
         saving_path = os.path.join(
-            '..', 'Output', 'Detections', f'predicted-{image_name}'
+            'output', 'detections', f'predicted-{image_name}'
         )
         cv2.imwrite(saving_path, adjusted)
 
@@ -205,7 +202,7 @@ class Detector(BaseModel):
         fps = int(vid.get(cv2.CAP_PROP_FPS))
         current = 1
         codec = cv2.VideoWriter_fourcc(*codec)
-        out = os.path.join('..', 'Output', 'Detections', 'predicted_vid.mp4')
+        out = os.path.join('output', 'detections', 'predicted_vid.mp4')
         writer = cv2.VideoWriter(out, codec, fps, (width, height))
         while vid.isOpened():
             _, frame = vid.read()
