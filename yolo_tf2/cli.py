@@ -1,20 +1,24 @@
+from yolo_tf2.utils.cli_utils import display_commands, add_args, train
+from yolo_tf2.config.cli_args import GENERAL
 import argparse
-import yolo_tf2
-
-
-def display_commands():
-    available_commands = {
-        'train': 'Create new or use existing dataset and train a model',
-        'evaluate': 'Evaluate a trained model',
-        'detect': 'Detect a folder of images or a video',
-    }
-    print(f'Yolo-tf2 {yolo_tf2.__version__}')
-    print(f'\nUsage:')
-    print(f'\tyolotf2 <command> [options] [args]')
-    print(f'\nAvailable commands:')
-    for command, description in available_commands.items():
-        print(f'\t{command:<10} {description}')
+import sys
 
 
 def execute():
-    display_commands()
+    parser = argparse.ArgumentParser()
+    if len(sys.argv) == 1:
+        display_commands()
+        return
+    if (command := sys.argv[1]) in ('train', 'evaluate', 'detect'):
+        del sys.argv[1]
+        parser = add_args(GENERAL, parser)
+    if command == 'train':
+        train(parser)
+    if command == 'evaluate':
+        pass
+    if command == 'detect':
+        pass
+
+
+if __name__ == '__main__':
+    execute()

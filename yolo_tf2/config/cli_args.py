@@ -2,7 +2,7 @@ import ast
 
 
 GENERAL = {
-    'shape': {
+    'input-shape': {
         'help': 'Input shape ex: (416, 416, 3)',
         'default': (416, 416, 3),
         'type': ast.literal_eval,
@@ -10,7 +10,7 @@ GENERAL = {
     'classes': {'help': 'Path to classes .txt file'},
     'weights': {'help': 'Path to .tf weights file', 'default': None},
     'model-cfg': {'help': 'Yolo DarkNet configuration .cfg file'},
-    'max_boxes': {'help': 'Maximum boxes per image', 'default': 100, 'type': int},
+    'max-boxes': {'help': 'Maximum boxes per image', 'default': 100, 'type': int},
     'train-tfrecord': {'help': 'Path to training .tfrecord file', 'default': None},
     'valid-tfrecord': {'help': 'Path to validation .tfrecord file', 'default': None},
     'iou-threshold': {
@@ -42,7 +42,7 @@ TRAINING = {
     'batch-size': {'help': 'Training batch size', 'type': int, 'default': 8},
     'learning-rate': {'help': 'Training learning rate', 'type': float, 'default': 1e-3},
     'dataset-conf': {'help': 'New dataset configuration', 'default': None},
-    'dataset-name': {'help': 'Name of the checkpoint', 'default': None},
+    'dataset-name': {'help': 'Name of the checkpoint', 'default': ''},
     'evaluate': {
         'help': 'If True, evaluation will be conducted after training',
         'action': 'store_true',
@@ -65,6 +65,11 @@ TRAINING = {
     'save-figs': {'help': 'If True, save plots', 'action': 'store_true'},
     'clear-output': {'help': 'If True, clear output folders', 'action': 'store_true'},
     'n-eval': {'help': 'Evaluate every n epochs', 'default': None, 'type': int},
+    'relative-labels': {'help': 'Path to .csv file that contains', 'default': None},
+    'from-xml': {
+        'help': 'Parse labels from XML files in data > xml_labels',
+        'action': 'store_true',
+    },
 }
 
 DETECTION = {

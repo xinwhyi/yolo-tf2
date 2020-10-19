@@ -22,3 +22,6 @@ test2.py
 *.iml
 !samples
 *.log
+build
+dist
+*egg-info

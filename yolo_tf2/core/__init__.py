@@ -5,7 +5,7 @@ import os
 dirs = [
     Path('data') / sub_folder for sub_folder in ('photos', 'tfrecords', 'xml_labels')
 ]
-dirs.extend([Path('models'), Path('yolo_logs')])
+dirs.extend([Path('models'), Path('yolo_logs'), Path('kos')])
 dirs.extend(
     [
         Path('output') / sub_folder

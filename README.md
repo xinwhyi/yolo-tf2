@@ -25,7 +25,7 @@
 * [x] YoloV4 training
 * [ ] YoloV4 loss function adjustments.
 * [ ] Live plot losses
-* [ ] Command line handler
+* [x] Command line handler
 * [x] YoloV3 tiny
 * [ ] Rasberry Pi support
 
