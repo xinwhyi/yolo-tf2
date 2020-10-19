@@ -84,7 +84,7 @@ Here are the **packages** you'll need to install before starting to use the dete
 * imagesize==1.2.0
 * seaborn==0.10.0
 * tensorflow==2.2.0
-* tensorflow-gpu==2.2.0
+* tensorflow-gpu==2.2.0  # Install this manually using pip if you need to
 * numpy==1.18.2
 * matplotlib==3.2.1
 * imgaug==0.4.0

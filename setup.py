@@ -15,6 +15,7 @@ install_requires = [
     'tensorflow-addons==0.10.0',
     'configparser~=5.0.0',
     'opencv-python~=4.2.0.34',
+    'scipy==1.4.1'
 ]
 
 setup(
@@ -28,4 +29,9 @@ setup(
     description='yolo(v3/v4) implementation in keras and tensorflow 2.2',
     install_requires=install_requires,
     python_requires='>=3.7',
+    entry_points={
+            'console_scripts': [
+                'yolotf2=yolo_tf2.cli:execute',
+            ],
+        }
 )
