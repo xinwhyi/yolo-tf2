@@ -25,9 +25,7 @@ def save_fig(title, save_figures=True):
     """
     if save_figures:
         saving_path = str(
-            Path(os.path.join('output', 'plots', f'{title}.png'))
-            .absolute()
-            .resolve()
+            Path(os.path.join('output', 'plots', f'{title}.png')).absolute().resolve()
         )
         if os.path.exists(saving_path):
             return
@@ -47,9 +45,9 @@ def visualize_box_relative_sizes(frame, save_result=True):
         None
     """
     title = f'Relative width and height for {frame.shape[0]} boxes.'
-    if os.path.exists(
-        os.path.join('output', 'plots', f'{title}.png')
-    ) or (frame is None):
+    if os.path.exists(os.path.join('output', 'plots', f'{title}.png')) or (
+        frame is None
+    ):
         return
     sns.scatterplot(
         x=frame['Relative Width'],
@@ -72,12 +70,10 @@ def visualize_k_means_output(centroids, frame, save_result=True):
     Returns:
         None
     """
-    title = (
-        f'{centroids.shape[0]} Centroids representing relative anchor sizes.'
-    )
-    if os.path.exists(
-        os.path.join('output', 'plots', f'{title}.png')
-    ) or (frame is None):
+    title = f'{centroids.shape[0]} Centroids representing relative anchor sizes.'
+    if os.path.exists(os.path.join('output', 'plots', f'{title}.png')) or (
+        frame is None
+    ):
         return
     fig, ax = plt.subplots()
     visualize_box_relative_sizes(frame)
@@ -121,7 +117,7 @@ def visualize_pr(calculated, save_results=True, fig_prefix=''):
     """
     Visualize precision and recall curves(post-training evaluation)
     Args:
-        calculated: pandas DataFrame with combined average precisions 
+        calculated: pandas DataFrame with combined average precisions
             that were calculated separately on each object class.
         save_results: If True, plots will be saved to output folder.
         fig_prefix: str, prefix to add to save path.
@@ -131,14 +127,10 @@ def visualize_pr(calculated, save_results=True, fig_prefix=''):
     """
     for item in calculated['object_name'].drop_duplicates().values:
         plt.figure()
-        title = (
-            f'{fig_prefix} Precision and recall curve for {fig_prefix} {item}'
-        )
+        title = f'{fig_prefix} Precision and recall curve for {fig_prefix} {item}'
         plt.title(title)
         recall = calculated[calculated['object_name'] == item]['recall'].values
-        precision = calculated[calculated['object_name'] == item][
-            'precision'
-        ].values
+        precision = calculated[calculated['object_name'] == item]['precision'].values
         plt.plot(recall, precision)
         plt.xlabel('recall')
         plt.ylabel('precision')
@@ -231,9 +223,7 @@ def visualization_wrapper(to_visualize):
                 return result
             visualize_k_means_output(*result)
             plt.show()
-            visualize_boxes(
-                result[0], os.path.join('samples', 'sample_image.png')
-            )
+            visualize_boxes(result[0], os.path.join('samples', 'sample_image.png'))
             plt.show()
         return result
 

@@ -63,9 +63,7 @@ def timer(logger):
             result = func(*args, **kwargs)
             total_time = perf_counter() - start_time
             if logger is not None:
-                logger.info(
-                    f'{func.__name__} execution time: ' f'{total_time} seconds'
-                )
+                logger.info(f'{func.__name__} execution time: ' f'{total_time} seconds')
             if result is not None:
                 return result
 
@@ -110,9 +108,7 @@ def transform_images(x_train, size):
 @tf.function
 def transform_targets_for_output(y_true, grid_size, anchor_idxs):
     n = tf.shape(y_true)[0]
-    y_true_out = tf.zeros(
-        (n, grid_size, grid_size, tf.shape(anchor_idxs)[0], 6)
-    )
+    y_true_out = tf.zeros((n, grid_size, grid_size, tf.shape(anchor_idxs)[0], 6))
     anchor_idxs = tf.cast(anchor_idxs, tf.int32)
     indexes = tf.TensorArray(tf.int32, 1, dynamic_size=True)
     updates = tf.TensorArray(tf.float32, 1, dynamic_size=True)
@@ -121,9 +117,7 @@ def transform_targets_for_output(y_true, grid_size, anchor_idxs):
         for j in tf.range(tf.shape(y_true)[1]):
             if tf.equal(y_true[i][j][2], 0):
                 continue
-            anchor_eq = tf.equal(
-                anchor_idxs, tf.cast(y_true[i][j][5], tf.int32)
-            )
+            anchor_eq = tf.equal(anchor_idxs, tf.cast(y_true[i][j][5], tf.int32))
             if tf.reduce_any(anchor_eq):
                 box = y_true[i][j][0:4]
                 box_xy = (y_true[i][j][0:2] + y_true[i][j][2:4]) / 2
@@ -136,9 +130,7 @@ def transform_targets_for_output(y_true, grid_size, anchor_idxs):
                     idx, [box[0], box[1], box[2], box[3], 1, y_true[i][j][4]]
                 )
                 idx += 1
-    return tf.tensor_scatter_nd_update(
-        y_true_out, indexes.stack(), updates.stack()
-    )
+    return tf.tensor_scatter_nd_update(y_true_out, indexes.stack(), updates.stack())
 
 
 def transform_targets(y_train, anchors, anchor_masks, size):
@@ -147,9 +139,7 @@ def transform_targets(y_train, anchors, anchor_masks, size):
     anchors = tf.cast(anchors, tf.float32)
     anchor_area = anchors[..., 0] * anchors[..., 1]
     box_wh = y_train[..., 2:4] - y_train[..., 0:2]
-    box_wh = tf.tile(
-        tf.expand_dims(box_wh, -2), (1, 1, tf.shape(anchors)[0], 1)
-    )
+    box_wh = tf.tile(tf.expand_dims(box_wh, -2), (1, 1, tf.shape(anchors)[0], 1))
     box_area = box_wh[..., 0] * box_wh[..., 1]
     intersection = tf.minimum(box_wh[..., 0], anchors[..., 0]) * tf.minimum(
         box_wh[..., 1], anchors[..., 1]
@@ -159,9 +149,7 @@ def transform_targets(y_train, anchors, anchor_masks, size):
     anchor_idx = tf.expand_dims(anchor_idx, axis=-1)
     y_train = tf.concat([y_train, anchor_idx], axis=-1)
     for anchor_idxs in anchor_masks:
-        y_outs.append(
-            transform_targets_for_output(y_train, grid_size, anchor_idxs)
-        )
+        y_outs.append(transform_targets_for_output(y_train, grid_size, anchor_idxs))
         grid_size *= 2
     return tuple(y_outs)
 
@@ -183,12 +171,8 @@ def broadcast_iou(box_1, box_2):
         0,
     )
     int_area = int_w * int_h
-    box_1_area = (box_1[..., 2] - box_1[..., 0]) * (
-        box_1[..., 3] - box_1[..., 1]
-    )
-    box_2_area = (box_2[..., 2] - box_2[..., 0]) * (
-        box_2[..., 3] - box_2[..., 1]
-    )
+    box_1_area = (box_1[..., 2] - box_1[..., 0]) * (box_1[..., 3] - box_1[..., 1])
+    box_2_area = (box_2[..., 2] - box_2[..., 0]) * (box_2[..., 3] - box_2[..., 1])
     return int_area / (box_1_area + box_2_area - int_area)
 
 
@@ -203,9 +187,7 @@ def get_boxes(pred, anchors, classes):
     pred_box = tf.concat((box_xy, box_wh), axis=-1)
     grid = tf.meshgrid(tf.range(grid_size), tf.range(grid_size))
     grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)
-    box_xy = (box_xy + tf.cast(grid, tf.float32)) / tf.cast(
-        grid_size, tf.float32
-    )
+    box_xy = (box_xy + tf.cast(grid, tf.float32)) / tf.cast(grid_size, tf.float32)
     box_wh = tf.exp(box_wh) * anchors
     box_x1y1 = box_xy - box_wh / 2
     box_x2y2 = box_xy + box_wh / 2
@@ -215,33 +197,23 @@ def get_boxes(pred, anchors, classes):
 
 def calculate_loss(anchors, classes=80, ignore_thresh=0.5):
     def yolo_loss(y_true, y_pred):
-        pred_box, pred_obj, pred_class, pred_xywh = get_boxes(
-            y_pred, anchors, classes
-        )
+        pred_box, pred_obj, pred_class, pred_xywh = get_boxes(y_pred, anchors, classes)
         pred_xy = pred_xywh[..., 0:2]
         pred_wh = pred_xywh[..., 2:4]
-        true_box, true_obj, true_class_idx = tf.split(
-            y_true, (4, 1, 1), axis=-1
-        )
+        true_box, true_obj, true_class_idx = tf.split(y_true, (4, 1, 1), axis=-1)
         true_xy = (true_box[..., 0:2] + true_box[..., 2:4]) / 2
         true_wh = true_box[..., 2:4] - true_box[..., 0:2]
         box_loss_scale = 2 - true_wh[..., 0] * true_wh[..., 1]
         grid_size = tf.shape(y_true)[1]
         grid = tf.meshgrid(tf.range(grid_size), tf.range(grid_size))
         grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)
-        true_xy = true_xy * tf.cast(grid_size, tf.float32) - tf.cast(
-            grid, tf.float32
-        )
+        true_xy = true_xy * tf.cast(grid_size, tf.float32) - tf.cast(grid, tf.float32)
         true_wh = tf.math.log(true_wh / anchors)
-        true_wh = tf.where(
-            tf.math.is_inf(true_wh), tf.zeros_like(true_wh), true_wh
-        )
+        true_wh = tf.where(tf.math.is_inf(true_wh), tf.zeros_like(true_wh), true_wh)
         obj_mask = tf.squeeze(true_obj, -1)
         best_iou = tf.map_fn(
             lambda x: tf.reduce_max(
-                broadcast_iou(
-                    x[0], tf.boolean_mask(x[1], tf.cast(x[2], tf.bool))
-                ),
+                broadcast_iou(x[0], tf.boolean_mask(x[1], tf.cast(x[2], tf.bool))),
                 axis=-1,
             ),
             (pred_box, true_box, obj_mask),
@@ -259,9 +231,7 @@ def calculate_loss(anchors, classes=80, ignore_thresh=0.5):
             * tf.reduce_sum(tf.square(true_wh - pred_wh), axis=-1)
         )
         obj_loss = binary_crossentropy(true_obj, pred_obj)
-        obj_loss = (
-            obj_mask * obj_loss + (1 - obj_mask) * ignore_mask * obj_loss
-        )
+        obj_loss = obj_mask * obj_loss + (1 - obj_mask) * ignore_mask * obj_loss
         class_loss = obj_mask * sparse_categorical_crossentropy(
             true_class_idx, pred_class
         )
@@ -270,6 +240,7 @@ def calculate_loss(anchors, classes=80, ignore_thresh=0.5):
         obj_loss = tf.reduce_sum(obj_loss, axis=(1, 2, 3))
         class_loss = tf.reduce_sum(class_loss, axis=(1, 2, 3))
         return xy_loss + wh_loss + obj_loss + class_loss
+
     return yolo_loss
 
 
@@ -315,13 +286,9 @@ def get_detection_data(image, image_name, outputs, class_names):
     nums = outputs[-1]
     boxes, scores, classes = 3 * [None]
     if isinstance(outputs[0], np.ndarray):
-        boxes, scores, classes = [
-            item[0][: int(nums)] for item in outputs[:-1]
-        ]
+        boxes, scores, classes = [item[0][: int(nums)] for item in outputs[:-1]]
     if not isinstance(outputs[0], np.ndarray):
-        boxes, scores, classes = [
-            item[0][: int(nums)].numpy() for item in outputs[:-1]
-        ]
+        boxes, scores, classes = [item[0][: int(nums)].numpy() for item in outputs[:-1]]
     w, h = np.flip(image.shape[0:2])
     data = pd.DataFrame(boxes, columns=['x1', 'y1', 'x2', 'y2'])
     data[['x1', 'x2']] = (data[['x1', 'x2']] * w).astype('int64')
@@ -386,9 +353,7 @@ def calculate_ratios(x1, y1, x2, y2, width, height):
     return bx, by, bw, bh
 
 
-def calculate_display_data(
-    prediction_file, classes_file, img_width, img_height, out
-):
+def calculate_display_data(prediction_file, classes_file, img_width, img_height, out):
     """
     Convert coordinates to relative labels.
 
@@ -411,9 +376,7 @@ def calculate_display_data(
     }
     for ind, item in preds.iterrows():
         img, obj, xx1, yy1, xx2, yy2, score, imgw, imgh, dk = item.values
-        bxx, byy, bww, bhh = calculate_ratios(
-            xx1, yy1, xx2, yy2, img_width, img_height
-        )
+        bxx, byy, bww, bhh = calculate_ratios(xx1, yy1, xx2, yy2, img_width, img_height)
         rows.append([img, obj, indices[obj], bxx, byy, bww, bhh])
     fr = pd.DataFrame(
         rows,

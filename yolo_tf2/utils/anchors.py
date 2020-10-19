@@ -62,8 +62,7 @@ def k_means(relative_sizes, k, distance_func=np.median, frame=None):
         current_nearest = np.argmin(distances, axis=1)
         if (last_nearest == current_nearest).all():
             default_logger.info(
-                f'Generated {len(centroids)} anchors in '
-                f'{iteration} iterations'
+                f'Generated {len(centroids)} anchors in ' f'{iteration} iterations'
             )
             return centroids, frame
         for anchor in range(k):

@@ -45,36 +45,18 @@ def parse_voc_file(file_path, voc_conf):
     tree = ElementTree.parse(file_path)
     image_path = get_tree_item(tree, tags['Tree']['Path'], file_path).text
     size_item = get_tree_item(tree, tags['Size']['Size Tag'], file_path)
-    image_width = get_tree_item(
-        size_item, tags['Size']['Width'], file_path
-    ).text
-    image_height = get_tree_item(
-        size_item, tags['Size']['Height'], file_path
-    ).text
-    for item in get_tree_item(
-        tree, tags['Object']['Object Tag'], file_path, True
-    ):
-        name = get_tree_item(
-            item, tags['Object']['Object Name'], file_path
-        ).text
+    image_width = get_tree_item(size_item, tags['Size']['Width'], file_path).text
+    image_height = get_tree_item(size_item, tags['Size']['Height'], file_path).text
+    for item in get_tree_item(tree, tags['Object']['Object Tag'], file_path, True):
+        name = get_tree_item(item, tags['Object']['Object Name'], file_path).text
         box_item = get_tree_item(
             item, tags['Object']['Object Box']['Object Box Tag'], file_path
         )
-        x0 = get_tree_item(
-            box_item, tags['Object']['Object Box']['X0'], file_path
-        ).text
-        y0 = get_tree_item(
-            box_item, tags['Object']['Object Box']['Y0'], file_path
-        ).text
-        x1 = get_tree_item(
-            box_item, tags['Object']['Object Box']['X1'], file_path
-        ).text
-        y1 = get_tree_item(
-            box_item, tags['Object']['Object Box']['Y1'], file_path
-        ).text
-        image_data.append(
-            [image_path, name, image_width, image_height, x0, y0, x1, y1]
-        )
+        x0 = get_tree_item(box_item, tags['Object']['Object Box']['X0'], file_path).text
+        y0 = get_tree_item(box_item, tags['Object']['Object Box']['Y0'], file_path).text
+        x1 = get_tree_item(box_item, tags['Object']['Object Box']['X1'], file_path).text
+        y1 = get_tree_item(box_item, tags['Object']['Object Box']['Y1'], file_path).text
+        image_data.append([image_path, name, image_width, image_height, x0, y0, x1, y1])
     return image_data
 
 
@@ -91,19 +73,13 @@ def adjust_frame(frame, cache_file=None):
     object_id = 1
     for item in frame.columns[2:]:
         frame[item] = frame[item].astype(float).astype(int)
-    frame['Relative Width'] = (frame['X_max'] - frame['X_min']) / frame[
-        'Image Width'
-    ]
-    frame['Relative Height'] = (frame['Y_max'] - frame['Y_min']) / frame[
-        'Image Height'
-    ]
+    frame['Relative Width'] = (frame['X_max'] - frame['X_min']) / frame['Image Width']
+    frame['Relative Height'] = (frame['Y_max'] - frame['Y_min']) / frame['Image Height']
     for object_name in list(frame['Object Name'].drop_duplicates()):
         frame.loc[frame['Object Name'] == object_name, 'Object ID'] = object_id
         object_id += 1
     if cache_file:
-        frame.to_csv(
-            os.path.join('output', 'data', cache_file), index=False
-        )
+        frame.to_csv(os.path.join('output', 'data', cache_file), index=False)
     print(f'Parsed labels:\n{frame["Object Name"].value_counts()}')
     return frame
 
@@ -124,8 +100,7 @@ def parse_voc_folder(folder_path, voc_conf):
     if os.path.exists(cache_path):
         frame = pd.read_csv(cache_path)
         print(
-            f'Labels retrieved from cache:'
-            f'\n{frame["Object Name"].value_counts()}'
+            f'Labels retrieved from cache:' f'\n{frame["Object Name"].value_counts()}'
         )
         return frame
     image_data = []
@@ -140,9 +115,7 @@ def parse_voc_folder(folder_path, voc_conf):
         'Y_max',
     ]
     xml_files = [
-        file_name
-        for file_name in os.listdir(folder_path)
-        if file_name.endswith('.xml')
+        file_name for file_name in os.listdir(folder_path) if file_name.endswith('.xml')
     ]
     for file_name in xml_files:
         annotation_path = os.path.join(folder_path, file_name)
@@ -155,9 +128,7 @@ def parse_voc_folder(folder_path, voc_conf):
         f'Received {len(frame)} labels containing ' f'{len(classes)} classes'
     )
     if frame.empty:
-        raise ValueError(
-            f'No labels were found in {os.path.abspath(folder_path)}'
-        )
+        raise ValueError(f'No labels were found in {os.path.abspath(folder_path)}')
     frame = adjust_frame(frame, 'parsed_from_xml.csv')
     return frame
 

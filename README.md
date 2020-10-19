@@ -359,13 +359,13 @@ Different operations are recorded using `logging` module.
 For custom training, `Trainer` class accepts configurations for augmentation, 
 new anchor generation, new dataset(TFRecord(s)) creation, mAP evaluation
 mid-training and post training. So all you have to do is place images
-in Data > Photos, provide the configuration that suits you and start the training
+in data > photos, provide the configuration that suits you and start the training
 process, all operations are managed from the same place for convenience.
 For detailed instructions check [Trainer.md](docs/Trainer.md)
 
 ### **Stop and resume training support**
 
-by default the trainer checkpoints to Models > checkpoint_name.tf at the end
+by default the trainer checkpoints to models > checkpoint_name.tf at the end
 of each training epoch which enables the training to be resumed at any given 
 point by loading the checkpoint which would be the most recent.
 
@@ -530,7 +530,7 @@ in xml VOC format, you can easily convert them using utils > annotation_parsers.
 After augmentation you'll find augmented images in the data > photos folder
 or the folder you specified(if you did specify one) 
 
-And you should find 2 csv files in the Output folder: 
+And you should find 2 csv files in the output folder: 
 
 1. `augmented_data_plus_original.csv` : you can use this with 
 [labelpix](https://github.com/emadboctorx/labelpix) to visualize results with

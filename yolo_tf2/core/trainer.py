@@ -3,7 +3,7 @@ from yolo_tf2.utils.dataset_handlers import read_tfr, save_tfr, get_feature_map
 from yolo_tf2.utils.common import transform_images, transform_targets
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from yolo_tf2.utils.annotation_parsers import parse_voc_folder
-from yolo_tf2.config.augmentation_options import augmentations
+from yolo_tf2.config.augmentation_options import AUGMENTATIONS
 from yolo_tf2.utils.anchors import k_means, generate_anchors
 from yolo_tf2.core.augmentor import DataAugment
 from yolo_tf2.core.evaluator import Evaluator
@@ -44,10 +44,15 @@ class Trainer(BaseModel):
         score_threshold=0.5,
     ):
         """
-        Initialize training.
+        Initialize trainer.
         Args:
-            model_configuration: Path to DarkNet cfg file.
             input_shape: tuple, (n, n, c)
+            model_configuration: Path to yolo DarkNet configuration .cfg file.
+            classes_file: Path to file containing dataset classes.
+            image_width: Dataset images actual width.
+            image_height: Dataset images actual height.
+            train_tf_record: Path to training tfrecord.
+            valid_tf_record: Path to validation tfrecord.
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
             max_boxes: Maximum boxes of the tfrecords provided(if any) or
@@ -56,9 +61,7 @@ class Trainer(BaseModel):
             score_threshold: float, values less than the threshold are ignored.
         """
         self.classes_file = classes_file
-        self.class_names = [
-            item.strip() for item in open(classes_file).readlines()
-        ]
+        self.class_names = [item.strip() for item in open(classes_file).readlines()]
         super().__init__(
             input_shape,
             model_configuration,
@@ -71,9 +74,7 @@ class Trainer(BaseModel):
         )
         self.train_tf_record = train_tf_record
         self.valid_tf_record = valid_tf_record
-        self.image_folder = (
-            Path(os.path.join('data', 'photos')).absolute().resolve()
-        )
+        self.image_folder = Path(os.path.join('data', 'photos')).absolute().resolve()
         self.image_width = image_width
         self.image_height = image_height
 
@@ -128,8 +129,6 @@ class Trainer(BaseModel):
                     - relative_labels
                     - from_xml
                     - coordinate_labels
-            new_anchors_conf: A dictionary with the following keys:
-            - anchor_no: number of anchors to generate
         Returns:
             None
         """
@@ -155,7 +154,8 @@ class Trainer(BaseModel):
     def generate_new_frame(self, new_dataset_conf):
         """
         Create new labels frame according to given configuration.
-
+        Args:
+            new_dataset_conf: A dictionary containing dataset configuration.
         Returns:
             pandas DataFrame adjusted for building the dataset containing
             labels or labels and augmented labels combined
@@ -186,9 +186,7 @@ class Trainer(BaseModel):
         dataset = dataset.map(
             lambda x, y: (
                 transform_images(x, self.input_shape[0]),
-                transform_targets(
-                    y, self.anchors, self.masks, self.input_shape[0]
-                ),
+                transform_targets(y, self.anchors, self.masks, self.input_shape[0]),
             )
         )
         dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
@@ -199,7 +197,7 @@ class Trainer(BaseModel):
         """
         Augment photos in self.image_paths
         Args:
-            new_dataset_conf: New dataset configuration dict.
+            new_dataset_conf: A dictionary containing dataset configuration.
 
         Returns:
             pandas DataFrame with both original and augmented data.
@@ -214,7 +212,7 @@ class Trainer(BaseModel):
         if not relative_labels:
             raise ValueError(f'No "relative_labels" found in new_dataset_conf')
         augment = DataAugment(
-            relative_labels, augmentations, workers or 32, coordinate_labels
+            relative_labels, AUGMENTATIONS, workers or 32, coordinate_labels
         )
         augment.create_sequences(sequences)
         return augment.augment_photos_folder(batch_size or 64)
@@ -268,9 +266,7 @@ class Trainer(BaseModel):
         if isinstance(predictions, tuple):
             training_predictions, valid_predictions = predictions
             if any([training_predictions.empty, valid_predictions.empty]):
-                default_logger.info(
-                    'Aborting evaluations, no detections found'
-                )
+                default_logger.info('Aborting evaluations, no detections found')
                 return
             training_actual = pd.read_csv(
                 os.path.join('data', 'tfrecords', 'training_data.csv')
@@ -297,9 +293,7 @@ class Trainer(BaseModel):
                 plot_stats,
             )
             return training_stats, training_map, valid_stats, valid_map
-        actual_data = pd.read_csv(
-            os.path.join('data', 'tfrecords', 'full_data.csv')
-        )
+        actual_data = pd.read_csv(os.path.join('data', 'tfrecords', 'full_data.csv'))
         if predictions.empty:
             default_logger.info('Aborting evaluations, no detections found')
             return
@@ -324,9 +318,7 @@ class Trainer(BaseModel):
         for folder_name in os.listdir(os.path.join('..', 'output')):
             if not folder_name.startswith('.'):
                 full_path = (
-                    Path(os.path.join('output', folder_name))
-                    .absolute()
-                    .resolve()
+                    Path(os.path.join('output', folder_name)).absolute().resolve()
                 )
                 for file_name in os.listdir(full_path):
                     full_file_path = Path(os.path.join(full_path, file_name))
@@ -334,9 +326,7 @@ class Trainer(BaseModel):
                         shutil.rmtree(full_file_path)
                     else:
                         os.remove(full_file_path)
-                    default_logger.info(
-                        f'Deleted old output: {full_file_path}'
-                    )
+                    default_logger.info(f'Deleted old output: {full_file_path}')
 
     def create_new_dataset(self, new_dataset_conf):
         """
@@ -477,9 +467,7 @@ class Trainer(BaseModel):
         )
         optimizer = tf.keras.optimizers.Adam(learning_rate)
         loss = [
-            calculate_loss(
-                self.anchors[mask], self.classes, self.iou_threshold
-            )
+            calculate_loss(self.anchors[mask], self.classes, self.iou_threshold)
             for mask in self.masks
         ]
         self.training_model.compile(optimizer=optimizer, loss=loss)
@@ -633,29 +621,17 @@ class MidTrainingEvaluator(Callback, Trainer):
             return
         self.evaluate(*self.evaluation_args)
         evaluation_dir = str(
-            Path(
-                os.path.join(
-                    'output', 'evaluation', f'epoch-{epoch}-evaluation'
-                )
-            )
+            Path(os.path.join('output', 'evaluation', f'epoch-{epoch}-evaluation'))
             .absolute()
             .resolve()
         )
         os.mkdir(evaluation_dir)
         current_predictions = [
-            str(
-                Path(os.path.join('output', 'data', item))
-                .absolute()
-                .resolve()
-            )
+            str(Path(os.path.join('output', 'data', item)).absolute().resolve())
             for item in os.listdir(os.path.join('output', 'data'))
         ]
         current_figures = [
-            str(
-                Path(os.path.join('output', 'plots', item))
-                .absolute()
-                .resolve()
-            )
+            str(Path(os.path.join('output', 'plots', item)).absolute().resolve())
             for item in os.listdir(os.path.join('output', 'plots'))
         ]
         current_files = current_predictions + current_figures

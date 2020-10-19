@@ -7,6 +7,7 @@ from yolo_tf2.utils.common import (
     default_logger,
     timer,
 )
+from pathlib import Path
 import tensorflow as tf
 import numpy as np
 import cv2
@@ -41,9 +42,7 @@ class Detector(BaseModel):
             iou_threshold: float, values less than the threshold are ignored.
             score_threshold: float, values less than the threshold are ignored.
         """
-        self.class_names = [
-            item.strip() for item in open(classes_file).readlines()
-        ]
+        self.class_names = [item.strip() for item in open(classes_file).readlines()]
         self.box_colors = {
             class_name: color
             for class_name, color in zip(
@@ -84,7 +83,10 @@ class Detector(BaseModel):
         else:
             adjusted = cv2.cvtColor(image_data.numpy(), cv2.COLOR_RGB2BGR)
         detections = get_detection_data(
-            adjusted, image_name, out, self.class_names,
+            adjusted,
+            image_name,
+            out,
+            self.class_names,
         )
         return detections, adjusted
 
@@ -122,19 +124,15 @@ class Detector(BaseModel):
             None
         """
         image_name = os.path.basename(image_path)
-        image_data = tf.image.decode_image(
-            open(image_path, 'rb').read(), channels=3
-        )
+        image_data = tf.image.decode_image(open(image_path, 'rb').read(), channels=3)
         detections, adjusted = self.detect_image(image_data, image_name)
         self.draw_on_image(adjusted, detections)
-        saving_path = os.path.join(
-            'output', 'detections', f'predicted-{image_name}'
-        )
+        saving_path = os.path.join('output', 'detections', f'predicted-{image_name}')
         cv2.imwrite(saving_path, adjusted)
 
     @timer(default_logger)
     def predict_photos(
-        self, photos, trained_weights, batch_size=32, workers=16
+        self, photos, trained_weights, batch_size=32, workers=16, target_dir=None
     ):
         """
         Predict a list of image paths and save results to output folder.
@@ -143,13 +141,22 @@ class Detector(BaseModel):
             trained_weights: .weights or .tf file
             batch_size: Prediction batch size.
             workers: Parallel predictions.
+            target_dir: A directory that contains images to predict.
 
         Returns:
             None
         """
         self.create_models()
         self.load_weights(trained_weights)
-        to_predict = photos.copy()
+        dir_photos = (
+            [
+                (Path(target_dir) / img).absolute().resolve().as_posix()
+                for img in os.listdir(target_dir)
+            ]
+            if target_dir
+            else None
+        )
+        to_predict = dir_photos.copy() or photos.copy()
         with ThreadPoolExecutor(max_workers=workers) as executor:
             predicted = 1
             done = []
@@ -178,9 +185,7 @@ class Detector(BaseModel):
                 default_logger.info(f'Saved prediction: {item}')
 
     @timer(default_logger)
-    def detect_video(
-        self, video, trained_weights, codec='mp4v', display=False
-    ):
+    def detect_video(self, video, trained_weights, codec='mp4v', display=False):
         """
         Perform detection on a video, stream(optional) and save results.
         Args:

@@ -45,9 +45,7 @@ class Evaluator(BaseModel):
                 as true positive.
         """
         self.classes_file = classes_file
-        self.class_names = [
-            item.strip() for item in open(classes_file).readlines()
-        ]
+        self.class_names = [item.strip() for item in open(classes_file).readlines()]
         super().__init__(
             input_shape,
             model_configuration,
@@ -96,13 +94,9 @@ class Evaluator(BaseModel):
         try:
             return next(dataset)
         except tf.errors.UnknownError as e:  # sometimes encountered when reading from google drive
-            default_logger.error(
-                f'Error occurred during reading from dataset\n{e}'
-            )
+            default_logger.error(f'Error occurred during reading from dataset\n{e}')
 
-    def predict_dataset(
-        self, dataset, workers=16, split='train', batch_size=64
-    ):
+    def predict_dataset(self, dataset, workers=16, split='train', batch_size=64):
         """
         Predict entire dataset.
         Args:
@@ -129,9 +123,9 @@ class Evaluator(BaseModel):
                     if item is not None:
                         current_batch.append(item)
                 future_predictions = {
-                    executor.submit(
-                        self.predict_image, img_data, features
-                    ): features['image_path']
+                    executor.submit(self.predict_image, img_data, features): features[
+                        'image_path'
+                    ]
                     for img_data, labels, features in current_batch
                 }
                 for future_prediction in as_completed(future_predictions):
@@ -201,17 +195,11 @@ class Evaluator(BaseModel):
         )
         if merge:
             predictions = pd.concat([train_predictions, valid_predictions])
-            save_path = os.path.join(
-                'output', 'data', 'full_dataset_predictions.csv'
-            )
+            save_path = os.path.join('output', 'data', 'full_dataset_predictions.csv')
             predictions.to_csv(save_path, index=False)
             return predictions
-        train_path = os.path.join(
-            'output', 'data', 'train_dataset_predictions.csv'
-        )
-        valid_path = os.path.join(
-            'output', 'data', 'valid_dataset_predictions.csv'
-        )
+        train_path = os.path.join('output', 'data', 'train_dataset_predictions.csv')
+        valid_path = os.path.join('output', 'data', 'valid_dataset_predictions.csv')
         train_predictions.to_csv(train_path, index=False)
         valid_predictions.to_csv(valid_path, index=False)
         return train_predictions, valid_predictions
@@ -248,13 +236,10 @@ class Evaluator(BaseModel):
             raise ValueError(f'Empty predictions frame')
         if isinstance(min_overlaps, float):
             assert 0 <= min_overlaps < 1, (
-                f'min_overlaps should be '
-                f'between 0 and 1, {min_overlaps} is given'
+                f'min_overlaps should be ' f'between 0 and 1, {min_overlaps} is given'
             )
         if isinstance(min_overlaps, dict):
-            assert all(
-                [0 < min_overlap < 1 for min_overlap in min_overlaps.values()]
-            )
+            assert all([0 < min_overlap < 1 for min_overlap in min_overlaps.values()])
             assert all([obj in min_overlaps for obj in self.class_names]), (
                 f'{[item for item in self.class_names if item not in min_overlaps]} '
                 f'are missing in min_overlaps'
@@ -277,21 +262,17 @@ class Evaluator(BaseModel):
         total_frame['x_min_common'] = total_frame[['X_min', 'x1']].max(1)
         total_frame['y_max_common'] = total_frame[['Y_max', 'y2']].min(1)
         total_frame['y_min_common'] = total_frame[['Y_min', 'y1']].max(1)
-        true_intersect = (
-            total_frame['x_max_common'] > total_frame['x_min_common']
-        ) & (total_frame['y_max_common'] > total_frame['y_min_common'])
-        total_frame = total_frame[true_intersect]
-        actual_areas = self.get_area(
-            total_frame, ['X_min', 'Y_min', 'X_max', 'Y_max']
+        true_intersect = (total_frame['x_max_common'] > total_frame['x_min_common']) & (
+            total_frame['y_max_common'] > total_frame['y_min_common']
         )
+        total_frame = total_frame[true_intersect]
+        actual_areas = self.get_area(total_frame, ['X_min', 'Y_min', 'X_max', 'Y_max'])
         predicted_areas = self.get_area(total_frame, ['x1', 'y1', 'x2', 'y2'])
         intersect_areas = self.get_area(
             total_frame,
             ['x_min_common', 'y_min_common', 'x_max_common', 'y_max_common'],
         )
-        iou_areas = intersect_areas / (
-            actual_areas + predicted_areas - intersect_areas
-        )
+        iou_areas = intersect_areas / (actual_areas + predicted_areas - intersect_areas)
         total_frame['iou'] = iou_areas
         if isinstance(min_overlaps, float):
             return total_frame[total_frame['iou'] >= min_overlaps]
@@ -416,9 +397,7 @@ class Evaluator(BaseModel):
                 ].sum()
                 * 100
             )
-            stats['Actual'] = len(
-                actual_data[actual_data["Object Name"] == class_name]
-            )
+            stats['Actual'] = len(actual_data[actual_data["Object Name"] == class_name])
             stats['detections'] = len(
                 detection_data[detection_data["object_name"] == class_name]
             )
@@ -428,9 +407,7 @@ class Evaluator(BaseModel):
             stats['False Positives'] = len(
                 false_positives[false_positives["object_name"] == class_name]
             )
-            stats['Combined'] = len(
-                combined[combined["object_name"] == class_name]
-            )
+            stats['Combined'] = len(combined[combined["object_name"] == class_name])
             class_stats.append(stats)
         total_stats = pd.DataFrame(class_stats).sort_values(
             by='Average Precision', ascending=False
@@ -448,9 +425,9 @@ class Evaluator(BaseModel):
         Returns:
             pandas DataFrame with average precisions calculated.
         """
-        combined = combined.sort_values(
-            by='score', ascending=False
-        ).reset_index(drop=True)
+        combined = combined.sort_values(by='score', ascending=False).reset_index(
+            drop=True
+        )
         combined['acc_tp'] = combined['true_positive'].cumsum()
         combined['acc_fp'] = combined['false_positive'].cumsum()
         combined['precision'] = combined['acc_tp'] / (
@@ -460,9 +437,7 @@ class Evaluator(BaseModel):
         combined['m_pre1'] = combined['precision'].shift(1, fill_value=0)
         combined['m_pre'] = combined[['m_pre1', 'precision']].max(axis=1)
         combined['m_rec1'] = combined['recall'].shift(1, fill_value=0)
-        combined.loc[
-            combined['m_rec1'] != combined['recall'], 'valid_m_rec'
-        ] = 1
+        combined.loc[combined['m_rec1'] != combined['recall'], 'valid_m_rec'] = 1
         combined['average_precision'] = (
             combined['recall'] - combined['m_rec1']
         ) * combined['m_pre']
@@ -502,9 +477,7 @@ class Evaluator(BaseModel):
         true_positives = self.get_true_positives(
             prediction_data, actual_data, min_overlaps
         )
-        false_positives = self.get_false_positives(
-            prediction_data, true_positives
-        )
+        false_positives = self.get_false_positives(prediction_data, true_positives)
         combined = self.combine_results(true_positives, false_positives)
         class_groups = combined.groupby('object_name')
         calculated = pd.concat(

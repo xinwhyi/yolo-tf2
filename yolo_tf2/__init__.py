@@ -7,8 +7,18 @@ if sys.version_info < (3, 7):
     sys.exit(1)
 
 dependencies = (
-    'pandas', 'lxml', 'imagesize', 'seaborn', 'tensorflow', 'numpy', 'matplotlib',
-    'imgaug', 'imagecorruptions', 'tensorflow_addons', 'configparser', 'cv2'
+    'pandas',
+    'lxml',
+    'imagesize',
+    'seaborn',
+    'tensorflow',
+    'numpy',
+    'matplotlib',
+    'imgaug',
+    'imagecorruptions',
+    'tensorflow_addons',
+    'configparser',
+    'cv2',
 )
 missing_dependencies = []
 
@@ -20,9 +30,6 @@ for dependency in dependencies:
 
 if missing_dependencies:
     dependencies = '\n'.join(missing_dependencies)
-    raise ImportError(
-        f'Unable to import required dependencies:\n{dependencies}'
-    )
+    raise ImportError(f'Unable to import required dependencies:\n{dependencies}')
 
 del dependencies, dependency, missing_dependencies, sys
-

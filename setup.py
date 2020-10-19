@@ -14,7 +14,7 @@ install_requires = [
     'imagecorruptions==1.1.0',
     'tensorflow-addons==0.10.0',
     'configparser~=5.0.0',
-    'opencv-python~=4.2.0.34'
+    'opencv-python~=4.2.0.34',
 ]
 
 setup(
@@ -27,5 +27,5 @@ setup(
     author_email='emad_1989@hotmail.com',
     description='yolo(v3/v4) implementation in keras and tensorflow 2.2',
     install_requires=install_requires,
-    python_requires='>=3.7'
+    python_requires='>=3.7',
 )

@@ -225,9 +225,7 @@ class BaseModel:
             valid_detections,
         ) = tf.image.combined_non_max_suppression(
             boxes=tf.reshape(bbox, (tf.shape(bbox)[0], -1, 1, 4)),
-            scores=tf.reshape(
-                scores, (tf.shape(scores)[0], -1, tf.shape(scores)[-1])
-            ),
+            scores=tf.reshape(scores, (tf.shape(scores)[0], -1, tf.shape(scores)[-1])),
             max_output_size_per_class=self.max_boxes,
             max_total_size=self.max_boxes,
             iou_threshold=self.iou_threshold,
@@ -269,16 +267,12 @@ class BaseModel:
             kernel_regularizer=l2(0.0005),
         )
         if batch_normalize:
-            convolution_layer = self.apply_func(
-                BatchNormalization, convolution_layer
-            )
+            convolution_layer = self.apply_func(BatchNormalization, convolution_layer)
         self.previous_layer = convolution_layer
         if activation == 'linear':
             self.model_layers.append(self.previous_layer)
         if activation == 'leaky':
-            act_layer = self.apply_func(
-                LeakyReLU, self.previous_layer, alpha=0.1
-            )
+            act_layer = self.apply_func(LeakyReLU, self.previous_layer, alpha=0.1)
             self.previous_layer = act_layer
             self.model_layers.append(act_layer)
         if activation == 'mish':
@@ -342,9 +336,7 @@ class BaseModel:
         index = int(cfg_parser[section]['from'])
         activation = cfg_parser[section]['activation']
         assert activation == 'linear', 'Only linear activation supported.'
-        layer = self.apply_func(
-            Add, [self.model_layers[index], self.previous_layer]
-        )
+        layer = self.apply_func(Add, [self.model_layers[index], self.previous_layer])
         self.model_layers.append(layer)
         self.previous_layer = layer
 
@@ -431,44 +423,32 @@ class BaseModel:
             self.create_section(section, cfg_parser)
         if len(self.output_indices) == 0:
             self.output_indices.append(len(self.model_layers) - 1)
-        self.output_layers.extend(
-            [self.model_layers[i] for i in self.output_indices]
-        )
+        self.output_layers.extend([self.model_layers[i] for i in self.output_indices])
         if '4' in self.model_configuration:
             self.output_layers.reverse()
-        self.training_model = Model(
-            inputs=input_initial, outputs=self.output_layers
-        )
+        self.training_model = Model(inputs=input_initial, outputs=self.output_layers)
         output_0, output_1, output_2 = self.output_layers
         boxes_0 = self.apply_func(
             Lambda,
             output_0,
-            lambda item: get_boxes(
-                item, self.anchors[self.masks[0]], self.classes
-            ),
+            lambda item: get_boxes(item, self.anchors[self.masks[0]], self.classes),
         )
         boxes_1 = self.apply_func(
             Lambda,
             output_1,
-            lambda item: get_boxes(
-                item, self.anchors[self.masks[1]], self.classes
-            ),
+            lambda item: get_boxes(item, self.anchors[self.masks[1]], self.classes),
         )
         boxes_2 = self.apply_func(
             Lambda,
             output_2,
-            lambda item: get_boxes(
-                item, self.anchors[self.masks[2]], self.classes
-            ),
+            lambda item: get_boxes(item, self.anchors[self.masks[2]], self.classes),
         )
         outputs = self.apply_func(
             Lambda,
             (boxes_0[:3], boxes_1[:3], boxes_2[:3]),
             lambda item: self.get_nms(item),
         )
-        self.inference_model = Model(
-            input_initial, outputs, name='inference_model'
-        )
+        self.inference_model = Model(input_initial, outputs, name='inference_model')
         default_logger.info('Training and inference models created')
         return self.training_model, self.inference_model
 
@@ -503,9 +483,7 @@ class BaseModel:
                 for layer in self.training_model.layers
                 if id(layer) not in [id(item) for item in self.output_layers]
             ]
-            self.model_layers.sort(
-                key=lambda layer: int(layer.name.split('_')[1])
-            )
+            self.model_layers.sort(key=lambda layer: int(layer.name.split('_')[1]))
             self.model_layers.extend(self.output_layers)
             for i, layer in enumerate(self.model_layers):
                 current_read = weights_data.tell()
@@ -521,9 +499,7 @@ class BaseModel:
                     continue
                 next_layer = self.model_layers[i + 1]
                 b_norm_layer = (
-                    next_layer
-                    if 'batch_normalization' in next_layer.name
-                    else None
+                    next_layer if 'batch_normalization' in next_layer.name else None
                 )
                 filters = layer.filters
                 kernel_size = layer.kernel_size[0]
@@ -557,9 +533,7 @@ class BaseModel:
                 )
                 if b_norm_layer is None:
                     try:
-                        layer.set_weights(
-                            [convolution_weights, convolution_bias]
-                        )
+                        layer.set_weights([convolution_weights, convolution_bias])
                     except ValueError:
                         pass
                 if b_norm_layer is not None:

@@ -69,9 +69,7 @@ def create_example(separate_data, key, image_data):
             bytes_list=tf.train.BytesList(value=[image[0].encode('utf-8')])
         ),
         'image_file': tf.train.Feature(
-            bytes_list=tf.train.BytesList(
-                value=[image_file_name.encode('utf8')]
-            )
+            bytes_list=tf.train.BytesList(value=[image_file_name.encode('utf8')])
         ),
         'image_key': tf.train.Feature(
             bytes_list=tf.train.BytesList(value=[key.encode('utf8')])
@@ -89,9 +87,7 @@ def create_example(separate_data, key, image_data):
         'object_name': tf.train.Feature(
             bytes_list=tf.train.BytesList(value=object_name)
         ),
-        'object_id': tf.train.Feature(
-            int64_list=tf.train.Int64List(value=object_id)
-        ),
+        'object_id': tf.train.Feature(int64_list=tf.train.Int64List(value=object_id)),
     }
     return tf.train.Example(features=tf.train.Features(feature=features))
 
@@ -164,9 +160,7 @@ def write_tf_record(output_path, groups, data, trainer=None):
                 f'{round(100 * (current_image / len(groups)))}% completed',
                 end='',
             )
-            separate_data = pd.DataFrame(
-                objects, columns=data.columns
-            ).T.to_numpy()
+            separate_data = pd.DataFrame(objects, columns=data.columns).T.to_numpy()
             (
                 image_width,
                 image_height,
@@ -182,9 +176,7 @@ def write_tf_record(output_path, groups, data, trainer=None):
             try:
                 image_data = open(image_path, 'rb').read()
                 key = hashlib.sha256(image_data).hexdigest()
-                training_example = create_example(
-                    separate_data, key, image_data
-                )
+                training_example = create_example(separate_data, key, image_data)
                 r_writer.write(training_example.SerializeToString())
             except Exception as e:
                 default_logger.error(e)
@@ -207,16 +199,12 @@ def save_tfr(data, output_folder, dataset_name, test_size, trainer=None):
     assert (
         0 < test_size < 1
     ), f'test_size must be 0 < test_size < 1 and {test_size} is given'
-    data['Object Name'] = data['Object Name'].apply(
-        lambda x: x.encode('utf-8')
-    )
+    data['Object Name'] = data['Object Name'].apply(lambda x: x.encode('utf-8'))
     data['Object ID'] = data['Object ID'].astype(int)
     data[data.dtypes[data.dtypes == 'int64'].index] = data[
         data.dtypes[data.dtypes == 'int64'].index
     ].apply(abs)
-    data.to_csv(
-        os.path.join('data', 'tfrecords', 'full_data.csv'), index=False
-    )
+    data.to_csv(os.path.join('data', 'tfrecords', 'full_data.csv'), index=False)
     groups = np.array(data.groupby('Image Path'))
     np.random.shuffle(groups)
     separation_index = int((1 - test_size) * len(groups))

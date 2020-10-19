@@ -1,4 +1,4 @@
-augmentations = {
+AUGMENTATIONS = {
     "meta": [
         {
             "no": 1,

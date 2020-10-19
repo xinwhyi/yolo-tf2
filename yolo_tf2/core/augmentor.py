@@ -54,9 +54,7 @@ class DataAugment:
                 f'Augmentation aborted: no photos found in {self.image_folder}'
             )
             raise ValueError(f'No photos given')
-        self.image_width, self.image_height = imagesize.get(
-            self.image_paths[0]
-        )
+        self.image_width, self.image_height = imagesize.get(self.image_paths[0])
         self.converted_coordinates = (
             pd.read_csv(converted_coordinates_file)
             if converted_coordinates_file
@@ -91,9 +89,7 @@ class DataAugment:
         Returns:
             The list of augmentation sequences that will be applied over images.
         """
-        total_target = (len(sequences) * len(self.image_paths)) + len(
-            self.image_paths
-        )
+        total_target = (len(sequences) * len(self.image_paths)) + len(self.image_paths)
         default_logger.info(f'Total images(old + augmented): {total_target}')
         for group in sequences:
             some_ofs = [
@@ -106,9 +102,7 @@ class DataAugment:
             ]
             some_of_aug = [item['augmentation'] for item in some_ofs]
             one_of_aug = [item['augmentation'] for item in one_ofs]
-            some_of_seq = iaa.SomeOf(
-                (0, 5), [eval(item) for item in some_of_aug]
-            )
+            some_of_seq = iaa.SomeOf((0, 5), [eval(item) for item in some_of_aug])
             one_of_seq = iaa.OneOf([eval(item) for item in one_of_aug])
             self.augmentation_sequences.append(
                 iaa.Sequential([some_of_seq, one_of_seq], random_order=True)
@@ -149,13 +143,9 @@ class DataAugment:
         """
         box_width = abs(x2 - x1)
         box_height = abs(y2 - y1)
-        bx = 1 - (
-            (self.image_width - min(x1, x2) + (box_width / 2))
-            / self.image_width
-        )
+        bx = 1 - ((self.image_width - min(x1, x2) + (box_width / 2)) / self.image_width)
         by = 1 - (
-            (self.image_height - min(y1, y2) + (box_height / 2))
-            / self.image_height
+            (self.image_height - min(y1, y2) + (box_height / 2)) / self.image_height
         )
         bw = box_width / self.image_width
         bh = box_height / self.image_height
@@ -208,14 +198,12 @@ class DataAugment:
                 'bh',
             ],
         )
-        new_data[['x1', 'y1', 'x2', 'y2']] = new_data[
-            ['x1', 'y1', 'x2', 'y2']
-        ].astype('int64')
+        new_data[['x1', 'y1', 'x2', 'y2']] = new_data[['x1', 'y1', 'x2', 'y2']].astype(
+            'int64'
+        )
         if out_file:
             new_data.to_csv(out_file, index=False)
-        default_logger.info(
-            f'Converted labels in {self.labels_file} to coordinates'
-        )
+        default_logger.info(f'Converted labels in {self.labels_file} to coordinates')
         return new_data
 
     def get_image_data(self, image_path):
@@ -244,9 +232,7 @@ class DataAugment:
         for item in frame_before[['x1', 'y1', 'x2', 'y2']].values:
             boxes.append(BoundingBox(*item))
         return (
-            BoundingBoxesOnImage(
-                boxes, shape=(self.image_height, self.image_width)
-            ),
+            BoundingBoxesOnImage(boxes, shape=(self.image_height, self.image_width)),
             frame_before,
         )
 
@@ -269,9 +255,7 @@ class DataAugment:
         paths = []
         with ThreadPoolExecutor(max_workers=self.workers) as executor:
             future_images = {
-                executor.submit(
-                    self.load_image, image_path, new_size
-                ): image_path
+                executor.submit(self.load_image, image_path, new_size): image_path
                 for image_path in batch
             }
             for future_image in as_completed(future_images):
@@ -280,9 +264,7 @@ class DataAugment:
                 paths.append(image_path)
         return np.array(loaded), paths
 
-    def update_data(
-        self, bbs_aug, frame_before, image_aug, new_name, new_path
-    ):
+    def update_data(self, bbs_aug, frame_before, image_aug, new_name, new_path):
         """
         Update new bounding boxes data and save augmented image.
         Args:
@@ -295,9 +277,7 @@ class DataAugment:
         Returns:
             None
         """
-        frame_after = pd.DataFrame(
-            bbs_aug.bounding_boxes, columns=['x1y1', 'x2y2']
-        )
+        frame_after = pd.DataFrame(bbs_aug.bounding_boxes, columns=['x1y1', 'x2y2'])
         if (
             frame_after.empty
         ):  # some post-augmentation photos do not contain bounding boxes
@@ -307,9 +287,7 @@ class DataAugment:
             )
             return
         frame_after = pd.DataFrame(
-            np.hstack(
-                (frame_after['x1y1'].tolist(), frame_after['x2y2'].tolist())
-            ),
+            np.hstack((frame_after['x1y1'].tolist(), frame_after['x2y2'].tolist())),
             columns=['x1', 'y1', 'x2', 'y2'],
         ).astype('int64')
         frame_after['object_type'] = frame_before['object_type'].values
@@ -379,16 +357,12 @@ class DataAugment:
         Returns:
             None
         """
-        default_logger.info(
-            f'Started augmentation with {self.workers} workers'
-        )
+        default_logger.info(f'Started augmentation with {self.workers} workers')
         default_logger.info(f'Total images to augment: {self.total_images}')
         default_logger.info(f'Session assigned id: {self.session_id}')
         with ThreadPoolExecutor(max_workers=self.workers) as executor:
             while self.image_paths_copy:
-                current_batch, current_paths = self.load_batch(
-                    new_size, batch_size
-                )
+                current_batch, current_paths = self.load_batch(new_size, batch_size)
                 future_augmentations = {
                     executor.submit(self.augment_image, image, path): path
                     for image, path in zip(current_batch, current_paths)
@@ -453,9 +427,7 @@ class DataAugment:
             bbs, frame_before = self.get_bounding_boxes_over_image(image_path)
             image_aug, bbs_aug = augment(image=image, bounding_boxes=bbs)
             image_before = bbs.draw_on_image(image, size=2)
-            image_after = bbs_aug.draw_on_image(
-                image_aug, size=2, color=[0, 0, 255]
-            )
+            image_after = bbs_aug.draw_on_image(image_aug, size=2, color=[0, 0, 255])
             out.append([image_before, image_after])
         self.display_windows(out, move_after)
         out.clear()
@@ -495,9 +467,7 @@ class DataAugment:
         Returns:
             None
         """
-        images = [
-            cv2.imread(f'{image}') for image in self.image_paths[:tensor_size]
-        ]
+        images = [cv2.imread(f'{image}') for image in self.image_paths[:tensor_size]]
         image_tensor = np.array(images)
         to_display = []
         for item in self.augmentation_map[sequence_group]:
@@ -506,9 +476,7 @@ class DataAugment:
                 current_augment = eval(item['augmentation'])
                 if not display_boxes:
                     to_display = current_augment(images=image_tensor)
-                    self.display_windows(
-                        zip(image_tensor, to_display), move_after
-                    )
+                    self.display_windows(zip(image_tensor, to_display), move_after)
                 if display_boxes:
                     self.display_with_bbs(
                         current_augment,
