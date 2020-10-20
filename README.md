@@ -42,13 +42,13 @@
 * [Updates](#updates)
 
 * [Features](#features)
-  * [Command line options](#new-command-line-options)
+  * [(new) Command line options](#new-command-line-options)
     * [General](#general-options)
     * [Training](#training-options)
     * [Evaluation](#evaluation-options)
     * [Detection](#detection-options)
-  * [(new) DarkNet models loaded directly from .cfg files](#new-darknet-models-loaded-directly-from-cfg-files)
-  * [(new) YoloV4 support](#new-yolov4-support)
+  * [DarkNet models loaded directly from .cfg files](#darknet-models-loaded-directly-from-cfg-files)
+  * [YoloV4 support](#yolov4-support)
   * [tensorflow-2.X--keras-functional-api](#tensorflow-22--keras-functional-api)
   * [cpu-gpu support](#cpu--gpu-support)
   * [Random weights and DarkNet weights support](#random-weights-and-darknet-weights-support)
@@ -168,58 +168,58 @@ this software however you like.
 
 ### **General options**
 
-| commands             | help                                                              | default       | required   | default       |
-|:---------------------|:------------------------------------------------------------------|:--------------|:-----------|:--------------|
-| --input-shape        | Input shape ex: (416, 416, 3)                                     | (416, 416, 3) | True       | (416, 416, 3) |
-| --classes            | Path to classes .txt file                                         | -             | True       | -             |
-| --weights            | Path to .tf weights file                                          | -             | -          | -             |
-| --model-cfg          | Yolo DarkNet configuration .cfg file                              | -             | True       | -             |
-| --max-boxes          | Maximum boxes per image                                           | 100           | -          | 100           |
-| --iou-threshold      | IOU(intersection over union threshold)                            | 0.5           | -          | 0.5           |
-| --score-threshold    | Confidence score threshold                                        | 0.5           | -          | 0.5           |
-| --workers            | Concurrent tasks(in areas where that is possible)                 | 16            | -          | 16            |
-| --process-batch-size | Batch size of operations that needs batching (excluding training) | 32            | -          | 32            |
-| --create-output-dirs | If True, output folders will be created in the working directory  | -             | -          | -             |
+| commands             | help                                                              | default       | required   |
+|:---------------------|:------------------------------------------------------------------|:--------------|:-----------|
+| --input-shape        | Input shape ex: (416, 416, 3)                                     | (416, 416, 3) | True       |
+| --classes            | Path to classes .txt file                                         | -             | True       |
+| --weights            | Path to .tf weights file                                          | -             | -          |
+| --model-cfg          | Yolo DarkNet configuration .cfg file                              | -             | True       |
+| --max-boxes          | Maximum boxes per image                                           | 100           | -          |
+| --iou-threshold      | IOU(intersection over union threshold)                            | 0.5           | -          |
+| --score-threshold    | Confidence score threshold                                        | 0.5           | -          |
+| --workers            | Concurrent tasks(in areas where that is possible)                 | 16            | -          |
+| --process-batch-size | Batch size of operations that needs batching (excluding training) | 32            | -          |
+| --create-output-dirs | If True, output folders will be created in the working directory  | -             | -          |
 
 ### **Training options**
 
-| commands              | help                                                         | default   | required   | default   |
-|:----------------------|:-------------------------------------------------------------|:----------|:-----------|:----------|
-| --image-width         | Image actual width                                           | -         | True       | -         |
-| --image-height        | Image actual height                                          | -         | True       | -         |
-| --epochs              | Number of training epochs                                    | 100       | -          | 100       |
-| --batch-size          | Training batch size                                          | 8         | -          | 8         |
-| --learning-rate       | Training learning rate                                       | 0.001     | -          | 0.001     |
-| --dataset-conf        | New dataset configuration                                    | -         | -          | -         |
-| --dataset-name        | Name of the checkpoint                                       | -         | -          | -         |
-| --test-size           | test dataset relative size (a value between 0 and 1)         | -         | -          | -         |
-| --evaluate            | If True, evaluation will be conducted after training         | -         | -          | -         |
-| --merge-evaluation    | If False, evaluate training and validation separately        | -         | -          | -         |
-| --shuffle-buffer      | Dataset shuffle buffer                                       | 512       | -          | 512       |
-| --min-overlaps        | a float value between 0 and 1                                | 0.5       | -          | 0.5       |
-| --display-stats       | If True, display evaluation statistics                       | -         | -          | -         |
-| --plot-stats          | If True, plot results                                        | -         | -          | -         |
-| --save-figs           | If True, save plots                                          | -         | -          | -         |
-| --clear-output        | If True, clear output folders                                | -         | -          | -         |
-| --n-eval              | Evaluate every n epochs                                      | -         | -          | -         |
-| --relative-labels     | Path to .csv file that contains                              | -         | -          | -         |
-| --from-xml            | Parse labels from XML files in data > xml_labels             | -         | -          | -         |
-| --augmentation-preset | name of augmentation preset                                  | -         | -          | -         |
-| --image-folder        | Path to folder that contains images, defaults to data/photos | -         | -          | -         |
-| --xml-labels-folder   | Path to folder that contains XML labels                      | -         | -          | -         |
-| --train-tfrecord      | Path to training .tfrecord file                              | -         | -          | -         |
-| --valid-tfrecord      | Path to validation .tfrecord file                            | -         | -          | -         |
+| commands              | help                                                         | default   | required   |
+|:----------------------|:-------------------------------------------------------------|:----------|:-----------|
+| --image-width         | Image actual width                                           | -         | True       |
+| --image-height        | Image actual height                                          | -         | True       |
+| --epochs              | Number of training epochs                                    | 100       | -          |
+| --batch-size          | Training batch size                                          | 8         | -          |
+| --learning-rate       | Training learning rate                                       | 0.001     | -          |
+| --dataset-conf        | New dataset configuration                                    | -         | -          |
+| --dataset-name        | Name of the checkpoint                                       | -         | -          |
+| --test-size           | test dataset relative size (a value between 0 and 1)         | -         | -          |
+| --evaluate            | If True, evaluation will be conducted after training         | -         | -          |
+| --merge-evaluation    | If False, evaluate training and validation separately        | -         | -          |
+| --shuffle-buffer      | Dataset shuffle buffer                                       | 512       | -          |
+| --min-overlaps        | a float value between 0 and 1                                | 0.5       | -          |
+| --display-stats       | If True, display evaluation statistics                       | -         | -          |
+| --plot-stats          | If True, plot results                                        | -         | -          |
+| --save-figs           | If True, save plots                                          | -         | -          |
+| --clear-output        | If True, clear output folders                                | -         | -          |
+| --n-eval              | Evaluate every n epochs                                      | -         | -          |
+| --relative-labels     | Path to .csv file that contains                              | -         | -          |
+| --from-xml            | Parse labels from XML files in data > xml_labels             | -         | -          |
+| --augmentation-preset | name of augmentation preset                                  | -         | -          |
+| --image-folder        | Path to folder that contains images, defaults to data/photos | -         | -          |
+| --xml-labels-folder   | Path to folder that contains XML labels                      | -         | -          |
+| --train-tfrecord      | Path to training .tfrecord file                              | -         | -          |
+| --valid-tfrecord      | Path to validation .tfrecord file                            | -         | -          |
 
 ### **Evaluation options**
 
 ### **Detection options**
 
-## **(new) DarkNet models loaded directly from .cfg files**
+## **DarkNet models loaded directly from .cfg files**
 This feature was introduced to replace the old hard-coded model,
 models are currently loaded directly from DarkNet .cfg files for convenience
 including YoloV4 .cfg
 
-## **(new) YoloV4 support**
+## **YoloV4 support**
 As models currently load from .cfg files directly, YoloV4 is supported
 the configuration file needs to be supplied and the model is loaded, as
 there are technical issues encountered with the loss function, only inference
