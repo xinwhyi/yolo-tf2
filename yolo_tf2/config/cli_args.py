@@ -44,7 +44,6 @@ TRAINING = {
     'epochs': {'help': 'Number of training epochs', 'type': int, 'default': 100},
     'batch-size': {'help': 'Training batch size', 'type': int, 'default': 8},
     'learning-rate': {'help': 'Training learning rate', 'type': float, 'default': 1e-3},
-    'dataset-conf': {'help': 'New dataset configuration', 'default': None},
     'dataset-name': {'help': 'Name of the checkpoint'},
     'test-size': {
         'help': 'test dataset relative size (a value between 0 and 1)',

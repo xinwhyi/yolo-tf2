@@ -25,7 +25,7 @@
 * [x] YoloV4 training
 * [ ] YoloV4 loss function adjustments.
 * [ ] Live plot losses
-* [x] Command line handler
+* [x] Command line options
 * [x] YoloV3 tiny
 * [ ] Rasberry Pi support
 
@@ -190,7 +190,6 @@ this software however you like.
 | --epochs              | Number of training epochs                                    | 100       | -          |
 | --batch-size          | Training batch size                                          | 8         | -          |
 | --learning-rate       | Training learning rate                                       | 0.001     | -          |
-| --dataset-conf        | New dataset configuration                                    | -         | -          |
 | --dataset-name        | Name of the checkpoint                                       | -         | -          |
 | --test-size           | test dataset relative size (a value between 0 and 1)         | -         | -          |
 | --evaluate            | If True, evaluation will be conducted after training         | -         | -          |

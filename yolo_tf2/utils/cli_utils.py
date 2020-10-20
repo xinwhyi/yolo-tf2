@@ -3,11 +3,33 @@ from yolo_tf2.core.evaluator import Evaluator
 from yolo_tf2.core.detector import Detector
 from yolo_tf2.core.trainer import Trainer
 from yolo_tf2.config.cli_args import (
+    GENERAL,
     TRAINING,
     DETECTION,
     EVALUATION,
 )
+import pandas as pd
 import yolo_tf2
+
+
+def display_section(section):
+    """
+    Display a dictionary of command line options
+    Args:
+        section: One of ['TRAINING', 'EVALUATION', 'DETECTION']
+
+    Returns:
+        None
+    """
+    section_frame = pd.DataFrame(eval(section)).T.fillna('-')
+    section_frame['commands'] = section_frame.index.values
+    section_frame['commands'] = section_frame['commands'].apply(
+        lambda c: f'--{c}')
+    section_frame = section_frame.reset_index(drop=True).set_index('commands')
+    print()
+    print(section.title())
+    print()
+    print(section_frame['help'].to_markdown())
 
 
 def display_commands():
@@ -27,6 +49,8 @@ def display_commands():
     print(f'\nAvailable commands:')
     for command, description in available_commands.items():
         print(f'\t{command:<10} {description}')
+    for section in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
+        display_section(section)
 
 
 def add_args(process_args, parser):
@@ -123,3 +147,11 @@ def train(parser):
         n_epoch_eval=cli_args.n_eval,
         create_dirs=cli_args.create_output_dirs,
     )
+
+
+def evaluate(parser):
+    pass
+
+
+def detect(parser):
+    pass
