@@ -1,4 +1,4 @@
-from yolo_tf2.utils.common import ratios_to_coordinates, default_logger
+from yolo_tf2.utils.common import ratios_to_coordinates, LOGGER
 from yolo_tf2.utils.visual_tools import visualization_wrapper
 from xml.etree import ElementTree
 from pathlib import Path
@@ -123,10 +123,8 @@ def parse_voc_folder(folder_path, voc_conf):
         image_data.extend(image_labels)
     frame = pd.DataFrame(image_data, columns=frame_columns)
     classes = frame['Object Name'].drop_duplicates()
-    default_logger.info(f'Read {len(xml_files)} xml files')
-    default_logger.info(
-        f'Received {len(frame)} labels containing ' f'{len(classes)} classes'
-    )
+    LOGGER.info(f'Read {len(xml_files)} xml files')
+    LOGGER.info(f'Received {len(frame)} labels containing ' f'{len(classes)} classes')
     if frame.empty:
         raise ValueError(f'No labels were found in {os.path.abspath(folder_path)}')
     frame = adjust_frame(frame, 'parsed_from_xml.csv')
@@ -177,11 +175,11 @@ def adjust_non_voc_csv(csv_file, image_path, image_width, image_height):
     ].astype('int64')
     print(f'Parsed labels:\n{new_frame["Object Name"].value_counts()}')
     classes = new_frame['Object Name'].drop_duplicates()
-    default_logger.info(
+    LOGGER.info(
         f'Adjustment from existing received {len(new_frame)} labels containing '
         f'{len(classes)} classes'
     )
-    default_logger.info(f'Added prefix to images: {image_path}')
+    LOGGER.info(f'Added prefix to images: {image_path}')
     return new_frame[
         [
             'Image Path',

@@ -1,4 +1,4 @@
-from yolo_tf2.utils.common import default_logger
+from yolo_tf2.utils.common import LOGGER
 import matplotlib.pyplot as plt
 from pathlib import Path
 import seaborn as sns
@@ -30,7 +30,7 @@ def save_fig(title, save_figures=True):
         if os.path.exists(saving_path):
             return
         plt.savefig(saving_path)
-        default_logger.info(f'Saved figure {saving_path}')
+        LOGGER.info(f'Saved figure {saving_path}')
         plt.close()
 
 

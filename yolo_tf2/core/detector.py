@@ -4,7 +4,7 @@ from yolo_tf2.utils.common import (
     get_detection_data,
     activate_gpu,
     transform_images,
-    default_logger,
+    LOGGER,
     timer,
 )
 from pathlib import Path
@@ -114,11 +114,12 @@ class Detector(BaseModel):
                 1,
             )
 
-    def predict_on_image(self, image_path):
+    def predict_on_image(self, image_path, output_path=None):
         """
         Detect, draw detections and save result to output folder.
         Args:
             image_path: Path to image.
+            output_path: Path to output image, defaults to output/detections/image_name
 
         Returns:
             None
@@ -127,12 +128,14 @@ class Detector(BaseModel):
         image_data = tf.image.decode_image(open(image_path, 'rb').read(), channels=3)
         detections, adjusted = self.detect_image(image_data, image_name)
         self.draw_on_image(adjusted, detections)
-        saving_path = os.path.join('output', 'detections', f'predicted-{image_name}')
+        saving_path = output_path or os.path.join(
+            'output', 'detections', f'predicted-{image_name}'
+        )
         cv2.imwrite(saving_path, adjusted)
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def predict_photos(
-        self, photos, trained_weights, batch_size=32, workers=16, target_dir=None
+        self, photos, trained_weights, batch_size=32, workers=16, output_dir=None
     ):
         """
         Predict a list of image paths and save results to output folder.
@@ -141,22 +144,14 @@ class Detector(BaseModel):
             trained_weights: .weights or .tf file
             batch_size: Prediction batch size.
             workers: Parallel predictions.
-            target_dir: A directory that contains images to predict.
+            output_dir: Path to output dir, defaults to output/detections
 
         Returns:
             None
         """
         self.create_models()
         self.load_weights(trained_weights)
-        dir_photos = (
-            [
-                (Path(target_dir) / img).absolute().resolve().as_posix()
-                for img in os.listdir(target_dir)
-            ]
-            if target_dir
-            else None
-        )
-        to_predict = dir_photos.copy() or photos.copy()
+        to_predict = photos.copy()
         with ThreadPoolExecutor(max_workers=workers) as executor:
             predicted = 1
             done = []
@@ -166,7 +161,13 @@ class Detector(BaseModel):
                     to_predict.pop() for _ in range(batch_size) if to_predict
                 ]
                 future_predictions = {
-                    executor.submit(self.predict_on_image, image): image
+                    executor.submit(
+                        self.predict_on_image,
+                        image,
+                        Path(output_dir, image).absolute().resolve()
+                        if output_dir
+                        else None,
+                    ): image
                     for image in current_batch
                 }
                 for future_prediction in as_completed(future_predictions):
@@ -182,10 +183,12 @@ class Detector(BaseModel):
                     predicted += 1
                     done.append(current_image)
             for item in done:
-                default_logger.info(f'Saved prediction: {item}')
+                LOGGER.info(f'Saved prediction: {item}')
 
-    @timer(default_logger)
-    def detect_video(self, video, trained_weights, codec='mp4v', display=False):
+    @timer(LOGGER)
+    def detect_video(
+        self, video, trained_weights, codec='mp4v', display=False, output_dir=None
+    ):
         """
         Perform detection on a video, stream(optional) and save results.
         Args:
@@ -194,6 +197,7 @@ class Detector(BaseModel):
             codec: str ex: mp4v
             display: If True, detections will be displayed during
                 the detection operation.
+            output_dir: Path to output dir, defaults to output/detections
 
         Returns:
             None
@@ -207,7 +211,11 @@ class Detector(BaseModel):
         fps = int(vid.get(cv2.CAP_PROP_FPS))
         current = 1
         codec = cv2.VideoWriter_fourcc(*codec)
-        out = os.path.join('output', 'detections', 'predicted_vid.mp4')
+        out = (
+            Path(output_dir, 'predicted_vid.mp4').absolute().resolve()
+            if output_dir
+            else (os.path.join('output', 'detections', 'predicted_vid.mp4'))
+        )
         writer = cv2.VideoWriter(out, codec, fps, (width, height))
         while vid.isOpened():
             _, frame = vid.read()
@@ -224,7 +232,7 @@ class Detector(BaseModel):
                 cv2.imshow(f'frame {current}', adjusted)
             current += 1
             if cv2.waitKey(1) == ord('q'):
-                default_logger.info(
+                LOGGER.info(
                     f'Video detection stopped by user {current}/{length} '
                     f'frames completed'
                 )

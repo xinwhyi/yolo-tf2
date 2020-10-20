@@ -1,4 +1,4 @@
-from yolo_tf2.utils.common import ratios_to_coordinates, timer, default_logger
+from yolo_tf2.utils.common import ratios_to_coordinates, timer, LOGGER
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -50,7 +50,7 @@ class DataAugment:
         ]
         self.image_paths_copy = self.image_paths.copy()
         if not self.image_paths:
-            default_logger.error(
+            LOGGER.error(
                 f'Augmentation aborted: no photos found in {self.image_folder}'
             )
             raise ValueError(f'No photos given')
@@ -90,7 +90,7 @@ class DataAugment:
             The list of augmentation sequences that will be applied over images.
         """
         total_target = (len(sequences) * len(self.image_paths)) + len(self.image_paths)
-        default_logger.info(f'Total images(old + augmented): {total_target}')
+        LOGGER.info(f'Total images(old + augmented): {total_target}')
         for group in sequences:
             some_ofs = [
                 self.augmentation_map[item['sequence_group']][item['no'] - 1]
@@ -203,7 +203,7 @@ class DataAugment:
         )
         if out_file:
             new_data.to_csv(out_file, index=False)
-        default_logger.info(f'Converted labels in {self.labels_file} to coordinates')
+        LOGGER.info(f'Converted labels in {self.labels_file} to coordinates')
         return new_data
 
     def get_image_data(self, image_path):
@@ -281,7 +281,7 @@ class DataAugment:
         if (
             frame_after.empty
         ):  # some post-augmentation photos do not contain bounding boxes
-            default_logger.warning(
+            LOGGER.warning(
                 f'\nskipping image: {new_name}: no bounding boxes after '
                 f'augmentation'
             )
@@ -346,7 +346,7 @@ class DataAugment:
             end='',
         )
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def augment_photos_folder(self, batch_size=64, new_size=None):
         """
         Augment photos in data/photos/
@@ -357,9 +357,9 @@ class DataAugment:
         Returns:
             None
         """
-        default_logger.info(f'Started augmentation with {self.workers} workers')
-        default_logger.info(f'Total images to augment: {self.total_images}')
-        default_logger.info(f'Session assigned id: {self.session_id}')
+        LOGGER.info(f'Started augmentation with {self.workers} workers')
+        LOGGER.info(f'Total images to augment: {self.total_images}')
+        LOGGER.info(f'Session assigned id: {self.session_id}')
         with ThreadPoolExecutor(max_workers=self.workers) as executor:
             while self.image_paths_copy:
                 current_batch, current_paths = self.load_batch(new_size, batch_size)
@@ -369,7 +369,7 @@ class DataAugment:
                 }
                 for future_augmented in as_completed(future_augmentations):
                     future_augmented.result()
-        default_logger.info(f'Augmentation completed')
+        LOGGER.info(f'Augmentation completed')
         augmentation_frame = pd.DataFrame(
             self.augmentation_data, columns=self.mapping.columns
         )
@@ -380,13 +380,13 @@ class DataAugment:
         for item in ['bx', 'by', 'bw', 'bh']:
             combined = combined.drop(combined[combined[item] > 1].index)
         combined.to_csv(saving_path, index=False)
-        default_logger.info(f'Saved old + augmented labels to {saving_path}')
+        LOGGER.info(f'Saved old + augmented labels to {saving_path}')
         adjusted_combined = adjust_non_voc_csv(
             saving_path, self.image_folder, self.image_width, self.image_height
         )
         adjusted_saving_path = saving_path.replace('augmented', 'adjusted_aug')
         adjusted_combined.to_csv(adjusted_saving_path, index=False)
-        default_logger.info(
+        LOGGER.info(
             f'Saved old + augmented (adjusted) labels to {adjusted_saving_path}'
         )
         return adjusted_combined

@@ -1,4 +1,4 @@
-from yolo_tf2.utils.common import default_logger
+from yolo_tf2.utils.common import LOGGER
 from pathlib import Path
 import tensorflow as tf
 import pandas as pd
@@ -179,7 +179,7 @@ def write_tf_record(output_path, groups, data, trainer=None):
                 training_example = create_example(separate_data, key, image_data)
                 r_writer.write(training_example.SerializeToString())
             except Exception as e:
-                default_logger.error(e)
+                LOGGER.error(e)
     print()
 
 
@@ -231,9 +231,9 @@ def save_tfr(data, output_folder, dataset_name, test_size, trainer=None):
         .resolve()
     )
     write_tf_record(training_path, training_set, data, trainer)
-    default_logger.info(f'Saved training TFRecord: {training_path}')
+    LOGGER.info(f'Saved training TFRecord: {training_path}')
     write_tf_record(test_path, test_set, data, trainer)
-    default_logger.info(f'Saved validation TFRecord: {test_path}')
+    LOGGER.info(f'Saved validation TFRecord: {test_path}')
 
 
 def read_tfr(
@@ -266,7 +266,7 @@ def read_tfr(
     class_table = tf.lookup.StaticHashTable(text_init, -1)
     files = tf.data.Dataset.list_files(tf_record_file)
     dataset = files.flat_map(tf.data.TFRecordDataset)
-    default_logger.info(f'Read TFRecord: {tf_record_file}')
+    LOGGER.info(f'Read TFRecord: {tf_record_file}')
     return dataset.map(
         lambda x: read_example(
             x, feature_map, class_table, max_boxes, new_size, get_features

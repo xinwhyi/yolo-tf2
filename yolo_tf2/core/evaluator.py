@@ -5,7 +5,7 @@ from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
     transform_images,
     get_detection_data,
-    default_logger,
+    LOGGER,
     timer,
 )
 import tensorflow as tf
@@ -94,7 +94,7 @@ class Evaluator(BaseModel):
         try:
             return next(dataset)
         except tf.errors.UnknownError as e:  # sometimes encountered when reading from google drive
-            default_logger.error(f'Error occurred during reading from dataset\n{e}')
+            LOGGER.error(f'Error occurred during reading from dataset\n{e}')
 
     def predict_dataset(self, dataset, workers=16, split='train', batch_size=64):
         """
@@ -141,7 +141,7 @@ class Evaluator(BaseModel):
                     current_prediction += 1
         return pd.concat(predictions)
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def make_predictions(
         self,
         trained_weights,
@@ -443,7 +443,7 @@ class Evaluator(BaseModel):
         ) * combined['m_pre']
         return combined
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def calculate_map(
         self,
         prediction_data,

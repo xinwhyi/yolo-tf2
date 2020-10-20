@@ -1,4 +1,4 @@
-from yolo_tf2.utils.common import get_boxes, timer, default_logger, Mish
+from yolo_tf2.utils.common import get_boxes, timer, LOGGER, Mish
 from tensorflow.keras.layers import (
     ZeroPadding2D,
     BatchNormalization,
@@ -405,7 +405,7 @@ class BaseModel:
         if section.startswith('yolo'):
             self.create_output_layer()
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def create_models(self):
         """
         Create training and inference yolo models.
@@ -449,10 +449,10 @@ class BaseModel:
             lambda item: self.get_nms(item),
         )
         self.inference_model = Model(input_initial, outputs, name='inference_model')
-        default_logger.info('Training and inference models created')
+        LOGGER.info('Training and inference models created')
         return self.training_model, self.inference_model
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def load_weights(self, weights_file):
         """
         Load DarkNet weights or checkpoint/pre-trained weights.
@@ -471,10 +471,10 @@ class BaseModel:
         ), f'DarkNet model should contain 80 classes, {self.classes} is given.'
         if weights_file.endswith('.tf'):
             self.training_model.load_weights(weights_file)
-            default_logger.info(f'Loaded weights: {weights_file} ... success')
+            LOGGER.info(f'Loaded weights: {weights_file} ... success')
             return
         with open(weights_file, 'rb') as weights_data:
-            default_logger.info(f'Loading pre-trained weights ...')
+            LOGGER.info(f'Loading pre-trained weights ...')
             major, minor, revision, seen, _ = np.fromfile(
                 weights_data, dtype=np.int32, count=5
             )
@@ -540,5 +540,5 @@ class BaseModel:
                     layer.set_weights([convolution_weights])
                     b_norm_layer.set_weights(bn_weights)
             assert len(weights_data.read()) == 0, 'failed to read all data'
-        default_logger.info(f'Loaded weights: {weights_file} ... success')
+        LOGGER.info(f'Loaded weights: {weights_file} ... success')
         print()

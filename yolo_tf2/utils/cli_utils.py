@@ -10,31 +10,41 @@ from yolo_tf2.config.cli_args import (
 )
 import pandas as pd
 import yolo_tf2
+import os
 
 
 def display_section(section):
     """
     Display a dictionary of command line options
     Args:
-        section: One of ['TRAINING', 'EVALUATION', 'DETECTION']
+        section: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
 
     Returns:
         None
     """
     section_frame = pd.DataFrame(eval(section)).T.fillna('-')
     section_frame['commands'] = section_frame.index.values
-    section_frame['commands'] = section_frame['commands'].apply(
-        lambda c: f'--{c}')
+    section_frame['commands'] = section_frame['commands'].apply(lambda c: f'--{c}')
     section_frame = section_frame.reset_index(drop=True).set_index('commands')
     print()
     print(section.title())
     print()
-    print(section_frame['help'].to_markdown())
+    print(
+        section_frame[
+            [
+                column_name
+                for column_name in ('help', 'required', 'default')
+                if column_name in section_frame.columns
+            ]
+        ].to_markdown()
+    )
 
 
-def display_commands():
+def display_commands(display_all=False):
     """
     Display available yolotf2 commands.
+    Args:
+        display_all: If True, all commands will be displayed
     Returns:
         None
     """
@@ -49,8 +59,12 @@ def display_commands():
     print(f'\nAvailable commands:')
     for command, description in available_commands.items():
         print(f'\t{command:<10} {description}')
-    for section in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
-        display_section(section)
+    print()
+    print('Use yolotf2 <command> -h to see more info about a command', end='\n\n')
+    print('Use yolotf2 -h to display all command line options')
+    if display_all:
+        for section in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
+            display_section(section)
 
 
 def add_args(process_args, parser):
@@ -80,6 +94,24 @@ def add_args(process_args, parser):
     return parser
 
 
+def add_all_args(parser, process_args, *args):
+    """
+    Add general and process specific args
+    Args:
+        parser: argparse.ArgumentParser
+        process_args: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
+        *args: Process required args
+
+    Returns:
+        cli_args
+    """
+    parser = add_args(process_args, parser)
+    cli_args = parser.parse_args()
+    for arg in ['input_shape', 'model_cfg', 'classes', *args]:
+        assert eval(f'cli_args.{arg}'), f'{arg} is required'
+    return cli_args
+
+
 def train(parser):
     """
     Parse cli options, create a training instance and train model.
@@ -89,10 +121,8 @@ def train(parser):
     Returns:
         None
     """
-    parser = add_args(TRAINING, parser)
-    cli_args = parser.parse_args()
-    for arg in ['input_shape', 'model_cfg', 'classes', 'image_width', 'image_height']:
-        assert eval(f'cli_args.{arg}'), f'{arg} is required'
+    required_args = ('image_width', 'image_height')
+    cli_args = add_all_args(parser, TRAINING, *required_args)
     if not cli_args.train_tfrecord and not cli_args.valid_tfrecord:
         assert cli_args.dataset_name and cli_args.test_size, (
             f'--dataset-name and --test-size are required or specify '
@@ -150,8 +180,85 @@ def train(parser):
 
 
 def evaluate(parser):
-    pass
+    """
+    Parse cli options, create an evaluation instance and evaluate.
+    Args:
+        parser: argparse.ArgumentParser
+
+    Returns:
+        None
+    """
+    required_args = (
+        'train_tfrecord',
+        'valid_tfrecord',
+        'predicted_data',
+        'actual_data',
+    )
+    cli_args = add_all_args(parser, EVALUATION, *required_args)
+    evaluator = Evaluator(
+        input_shape=cli_args.input_shape,
+        model_configuration=cli_args.model_cfg,
+        train_tf_record=cli_args.train_tfrecord,
+        valid_tf_record=cli_args.valid_tfrecord,
+        classes_file=cli_args.classes,
+        max_boxes=cli_args.max_boxes,
+        iou_threshold=cli_args.iou_threshold,
+        score_threshold=cli_args.score_threshold,
+    )
+    predicted = pd.read_csv(cli_args.predicted_data)
+    actual = pd.read_csv(cli_args.actual_data)
+    evaluator.calculate_map(
+        prediction_data=predicted,
+        actual_data=actual,
+        min_overlaps=cli_args.min_overlaps,
+        display_stats=cli_args.display_stats,
+        save_figs=cli_args.save_figs,
+        plot_results=cli_args.plot_stats,
+    )
 
 
 def detect(parser):
-    pass
+    """
+    Detect, draw boxes over an image / a folder of images / a video and save
+    Args:
+        parser: argparse.ArgumentParser
+
+    Returns:
+        None
+    """
+    cli_args = add_all_args(parser, DETECTION)
+    detector = Detector(
+        input_shape=cli_args.input_shape,
+        model_configuration=cli_args.model_cfg,
+        classes_file=cli_args.classes,
+        max_boxes=cli_args.max_boxes,
+        iou_threshold=cli_args.iou_threshold,
+        score_threshold=cli_args.score_threshold,
+    )
+    check_args = [
+        item for item in [cli_args.image, cli_args.image_dir, cli_args.video] if item
+    ]
+    assert (
+        len(check_args) == 1
+    ), 'Expected --image or --image-dir or --vidoe, got more than one'
+    target_photos = []
+    if cli_args.image:
+        target_photos.append(cli_args.image)
+    if cli_args.image_dir:
+        target_photos.extend(os.listdir(cli_args.image_dir))
+    if cli_args.image or cli_args.image_dir:
+        detector.predict_photos(
+            photos=[target_photos],
+            trained_weights=cli_args.weights,
+            batch_size=cli_args.process_batch_size,
+            workers=cli_args.workers,
+            output_dir=cli_args.output_dir,
+        )
+    if cli_args.video:
+        detector.detect_video(
+            video=cli_args.video,
+            trained_weights=cli_args.weights,
+            codec=cli_args.codec,
+            display=cli_args.display_vid,
+            output_dir=cli_args.output_dir,
+        )

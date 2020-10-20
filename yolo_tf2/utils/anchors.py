@@ -1,6 +1,6 @@
 import numpy as np
 from yolo_tf2.utils.visual_tools import visualization_wrapper
-from yolo_tf2.utils.common import default_logger, timer
+from yolo_tf2.utils.common import LOGGER, timer
 
 
 def iou(relative_sizes, centroids, k):
@@ -32,7 +32,7 @@ def iou(relative_sizes, centroids, k):
     return result
 
 
-@timer(default_logger)
+@timer(LOGGER)
 @visualization_wrapper
 def k_means(relative_sizes, k, distance_func=np.median, frame=None):
     """
@@ -61,7 +61,7 @@ def k_means(relative_sizes, k, distance_func=np.median, frame=None):
         iteration += 1
         current_nearest = np.argmin(distances, axis=1)
         if (last_nearest == current_nearest).all():
-            default_logger.info(
+            LOGGER.info(
                 f'Generated {len(centroids)} anchors in ' f'{iteration} iterations'
             )
             return centroids, frame

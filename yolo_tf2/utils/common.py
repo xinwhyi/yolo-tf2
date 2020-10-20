@@ -21,7 +21,7 @@ import os
 tfa.options.TF_ADDONS_PY_OPS = True
 
 
-def get_logger():
+def get_logger(log_file=None):
     """
     Initialize logger configuration.
 
@@ -34,19 +34,17 @@ def get_logger():
     )
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
-    file_title = os.path.join('yolo_logs', 'session.log')
-    if 'yolo_logs' not in os.listdir():
-        os.mkdir('yolo_logs')
-    file_handler = handlers.RotatingFileHandler(file_title, backupCount=10)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    if log_file:
+        file_handler = handlers.RotatingFileHandler(log_file, backupCount=10)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     return logger
 
 
-default_logger = get_logger()
+LOGGER = get_logger()
 
 
 def timer(logger):
@@ -325,7 +323,7 @@ def activate_gpu():
     physical_devices = tf.config.experimental.list_physical_devices('GPU')
     if len(physical_devices) > 0:
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        default_logger.info('GPU activated')
+        LOGGER.info('GPU activated')
 
 
 def calculate_ratios(x1, y1, x2, y2, width, height):

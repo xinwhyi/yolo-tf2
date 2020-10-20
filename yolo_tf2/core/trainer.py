@@ -3,7 +3,7 @@ from yolo_tf2.utils.common import (
     transform_targets,
     create_output_dirs,
 )
-from yolo_tf2.utils.common import calculate_loss, timer, default_logger, activate_gpu
+from yolo_tf2.utils.common import calculate_loss, timer, LOGGER, activate_gpu
 from yolo_tf2.utils.dataset_handlers import read_tfr, save_tfr, get_feature_map
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from yolo_tf2.utils.annotation_parsers import parse_voc_folder
@@ -161,7 +161,7 @@ class Trainer(BaseModel):
             generate_anchors(self.image_width, self.image_height, centroids)
             / self.input_shape[0]
         )
-        default_logger.info('Changed default anchors to generated ones')
+        LOGGER.info('Changed default anchors to generated ones')
 
     def generate_new_frame(self, new_dataset_conf):
         """
@@ -232,7 +232,7 @@ class Trainer(BaseModel):
         augment.create_sequences(sequences)
         return augment.augment_photos_folder(batch_size or 64)
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def evaluate(
         self,
         weights_file,
@@ -262,7 +262,7 @@ class Trainer(BaseModel):
         Returns:
             stats, map_score.
         """
-        default_logger.info('Starting evaluation ...')
+        LOGGER.info('Starting evaluation ...')
         evaluator = Evaluator(
             self.input_shape,
             self.model_configuration,
@@ -281,7 +281,7 @@ class Trainer(BaseModel):
         if isinstance(predictions, tuple):
             training_predictions, valid_predictions = predictions
             if any([training_predictions.empty, valid_predictions.empty]):
-                default_logger.info('Aborting evaluations, no detections found')
+                LOGGER.info('Aborting evaluations, no detections found')
                 return
             training_actual = pd.read_csv(
                 os.path.join('data', 'tfrecords', 'training_data.csv')
@@ -310,7 +310,7 @@ class Trainer(BaseModel):
             return training_stats, training_map, valid_stats, valid_map
         actual_data = pd.read_csv(os.path.join('data', 'tfrecords', 'full_data.csv'))
         if predictions.empty:
-            default_logger.info('Aborting evaluations, no detections found')
+            LOGGER.info('Aborting evaluations, no detections found')
             return
         stats, map_score = evaluator.calculate_map(
             predictions,
@@ -341,7 +341,7 @@ class Trainer(BaseModel):
                         shutil.rmtree(full_file_path)
                     else:
                         os.remove(full_file_path)
-                    default_logger.info(f'Deleted old output: {full_file_path}')
+                    LOGGER.info(f'Deleted old output: {full_file_path}')
 
     def create_new_dataset(self, new_dataset_conf):
         """
@@ -363,7 +363,7 @@ class Trainer(BaseModel):
                     'Object ID']
                     - from_xml: True or False to parse from xml_labels folder.
         """
-        default_logger.info(f'Generating new dataset ...')
+        LOGGER.info(f'Generating new dataset ...')
         test_size = new_dataset_conf.get('test_size')
         labels_frame = self.generate_new_frame(new_dataset_conf)
         save_tfr(
@@ -383,11 +383,11 @@ class Trainer(BaseModel):
         """
         if not self.train_tf_record:
             issue = 'No training TFRecord specified'
-            default_logger.error(issue)
+            LOGGER.error(issue)
             raise ValueError(issue)
         if not self.valid_tf_record:
             issue = 'No validation TFRecord specified'
-            default_logger.error(issue)
+            LOGGER.error(issue)
             raise ValueError(issue)
 
     @staticmethod
@@ -411,7 +411,7 @@ class Trainer(BaseModel):
             EarlyStopping(monitor='val_loss', patience=6, verbose=1),
         ]
 
-    @timer(default_logger)
+    @timer(LOGGER)
     def train(
         self,
         epochs,
@@ -478,9 +478,9 @@ class Trainer(BaseModel):
         if clear_outputs:
             self.clear_outputs()
         activate_gpu()
-        default_logger.info(f'Starting training ...')
+        LOGGER.info(f'Starting training ...')
         if new_anchors_conf:
-            default_logger.info(f'Generating new anchors ...')
+            LOGGER.info(f'Generating new anchors ...')
             self.generate_new_anchors(new_anchors_conf)
         self.create_models()
         if weights:
@@ -535,7 +535,7 @@ class Trainer(BaseModel):
             callbacks=callbacks,
             validation_data=valid_dataset,
         )
-        default_logger.info('Training complete')
+        LOGGER.info('Training complete')
         if evaluate:
             evaluations = self.evaluate(
                 checkpoint_path,

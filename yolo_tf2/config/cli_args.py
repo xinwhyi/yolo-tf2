@@ -9,7 +9,6 @@ GENERAL = {
         'required': True,
     },
     'classes': {'help': 'Path to classes .txt file', 'required': True},
-    'weights': {'help': 'Path to .tf weights file', 'default': None},
     'model-cfg': {'help': 'Yolo DarkNet configuration .cfg file', 'required': True},
     'max-boxes': {'help': 'Maximum boxes per image', 'default': 100, 'type': int},
     'iou-threshold': {
@@ -39,6 +38,7 @@ GENERAL = {
 }
 
 TRAINING = {
+    'weights': {'help': 'Path to trained weights .tf or .weights file'},
     'image-width': {'help': 'Image actual width', 'type': int, 'required': True},
     'image-height': {'help': 'Image actual height', 'type': int, 'required': True},
     'epochs': {'help': 'Number of training epochs', 'type': int, 'default': 100},
@@ -70,7 +70,7 @@ TRAINING = {
     'plot-stats': {'help': 'If True, plot results', 'action': 'store_true'},
     'save-figs': {'help': 'If True, save plots', 'action': 'store_true'},
     'clear-output': {'help': 'If True, clear output folders', 'action': 'store_true'},
-    'n-eval': {'help': 'Evaluate every n epochs', 'default': None, 'type': int},
+    'n-eval': {'help': 'Evaluate every n epochs', 'type': int},
     'relative-labels': {'help': 'Path to .csv file that contains'},
     'from-xml': {
         'help': 'Parse labels from XML files in data > xml_labels',
@@ -79,42 +79,41 @@ TRAINING = {
     'augmentation-preset': {'help': 'name of augmentation preset'},
     'image-folder': {
         'help': 'Path to folder that contains images, defaults to data/photos',
-        'default': None,
     },
     'xml-labels-folder': {
         'help': 'Path to folder that contains XML labels',
-        'default': None,
     },
-    'train-tfrecord': {'help': 'Path to training .tfrecord file', 'default': None},
-    'valid-tfrecord': {'help': 'Path to validation .tfrecord file', 'default': None},
-}
-
-DETECTION = {
-    'target-dir': {
-        'help': 'A directory that contains images to predict',
-        'default': None,
-    },
-    'video': {'help': 'A video to predict', 'default': None},
-    'codec': {
-        'help': 'Codec to use for predicting videos',
-        'default': 'mp4v',
-    },
-    'display': {'help': 'Display video while predicting', 'action': 'store_true'},
+    'train-tfrecord': {'help': 'Path to training .tfrecord file'},
+    'valid-tfrecord': {'help': 'Path to validation .tfrecord file'},
 }
 
 EVALUATION = {
-    'predicted-data': {
-        'help': 'csv file with predictions',
-    },
-    'actual-data': {'help': 'csv file with actual data'},
+    'predicted-data': {'help': 'csv file with predictions', 'required': True},
+    'actual-data': {'help': 'csv file with actual data', 'required': True},
     'train-tfrecord': {
         'help': 'Path to training .tfrecord file',
-        'default': None,
         'required': True,
     },
     'valid-tfrecord': {
         'help': 'Path to validation .tfrecord file',
-        'default': None,
         'required': True,
     },
+}
+
+DETECTION = {
+    'image': {'help': 'Path to an image to predict and draw bounding boxes over'},
+    'image-dir': {
+        'help': 'A directory that contains images to predict',
+    },
+    'video': {'help': 'A video to predict'},
+    'codec': {
+        'help': 'Codec to use for predicting videos',
+        'default': 'mp4v',
+    },
+    'display-vid': {'help': 'Display video during prediction', 'action': 'store_true'},
+    'weights': {
+        'help': 'Path to trained weights .tf or .weights file',
+        'required': True,
+    },
+    'output-dir': {'help': 'Path to directory for saving results'},
 }

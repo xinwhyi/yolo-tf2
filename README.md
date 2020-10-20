@@ -168,50 +168,67 @@ this software however you like.
 
 ### **General options**
 
-| commands             | help                                                              | default       | required   |
-|:---------------------|:------------------------------------------------------------------|:--------------|:-----------|
-| --input-shape        | Input shape ex: (416, 416, 3)                                     | (416, 416, 3) | True       |
-| --classes            | Path to classes .txt file                                         | -             | True       |
-| --weights            | Path to .tf weights file                                          | -             | -          |
-| --model-cfg          | Yolo DarkNet configuration .cfg file                              | -             | True       |
-| --max-boxes          | Maximum boxes per image                                           | 100           | -          |
-| --iou-threshold      | IOU(intersection over union threshold)                            | 0.5           | -          |
-| --score-threshold    | Confidence score threshold                                        | 0.5           | -          |
-| --workers            | Concurrent tasks(in areas where that is possible)                 | 16            | -          |
-| --process-batch-size | Batch size of operations that needs batching (excluding training) | 32            | -          |
-| --create-output-dirs | If True, output folders will be created in the working directory  | -             | -          |
+| commands             | help                                                              | required   | default       |
+|:---------------------|:------------------------------------------------------------------|:-----------|:--------------|
+| --input-shape        | Input shape ex: (416, 416, 3)                                     | True       | (416, 416, 3) |
+| --classes            | Path to classes .txt file                                         | True       | -             |
+| --model-cfg          | Yolo DarkNet configuration .cfg file                              | True       | -             |
+| --max-boxes          | Maximum boxes per image                                           | -          | 100           |
+| --iou-threshold      | IOU(intersection over union threshold)                            | -          | 0.5           |
+| --score-threshold    | Confidence score threshold                                        | -          | 0.5           |
+| --workers            | Concurrent tasks(in areas where that is possible)                 | -          | 16            |
+| --process-batch-size | Batch size of operations that needs batching (excluding training) | -          | 32            |
+| --create-output-dirs | If True, output folders will be created in the working directory  | -          | -             |
 
 ### **Training options**
 
-| commands              | help                                                         | default   | required   |
-|:----------------------|:-------------------------------------------------------------|:----------|:-----------|
-| --image-width         | Image actual width                                           | -         | True       |
-| --image-height        | Image actual height                                          | -         | True       |
-| --epochs              | Number of training epochs                                    | 100       | -          |
-| --batch-size          | Training batch size                                          | 8         | -          |
-| --learning-rate       | Training learning rate                                       | 0.001     | -          |
-| --dataset-name        | Name of the checkpoint                                       | -         | -          |
-| --test-size           | test dataset relative size (a value between 0 and 1)         | -         | -          |
-| --evaluate            | If True, evaluation will be conducted after training         | -         | -          |
-| --merge-evaluation    | If False, evaluate training and validation separately        | -         | -          |
-| --shuffle-buffer      | Dataset shuffle buffer                                       | 512       | -          |
-| --min-overlaps        | a float value between 0 and 1                                | 0.5       | -          |
-| --display-stats       | If True, display evaluation statistics                       | -         | -          |
-| --plot-stats          | If True, plot results                                        | -         | -          |
-| --save-figs           | If True, save plots                                          | -         | -          |
-| --clear-output        | If True, clear output folders                                | -         | -          |
-| --n-eval              | Evaluate every n epochs                                      | -         | -          |
-| --relative-labels     | Path to .csv file that contains                              | -         | -          |
-| --from-xml            | Parse labels from XML files in data > xml_labels             | -         | -          |
-| --augmentation-preset | name of augmentation preset                                  | -         | -          |
-| --image-folder        | Path to folder that contains images, defaults to data/photos | -         | -          |
-| --xml-labels-folder   | Path to folder that contains XML labels                      | -         | -          |
-| --train-tfrecord      | Path to training .tfrecord file                              | -         | -          |
-| --valid-tfrecord      | Path to validation .tfrecord file                            | -         | -          |
+| commands              | help                                                         | required   | default   |
+|:----------------------|:-------------------------------------------------------------|:-----------|:----------|
+| --weights             | Path to trained weights .tf or .weights file                 | -          | -         |
+| --image-width         | Image actual width                                           | True       | -         |
+| --image-height        | Image actual height                                          | True       | -         |
+| --epochs              | Number of training epochs                                    | -          | 100       |
+| --batch-size          | Training batch size                                          | -          | 8         |
+| --learning-rate       | Training learning rate                                       | -          | 0.001     |
+| --dataset-name        | Name of the checkpoint                                       | -          | -         |
+| --test-size           | test dataset relative size (a value between 0 and 1)         | -          | -         |
+| --evaluate            | If True, evaluation will be conducted after training         | -          | -         |
+| --merge-evaluation    | If False, evaluate training and validation separately        | -          | -         |
+| --shuffle-buffer      | Dataset shuffle buffer                                       | -          | 512       |
+| --min-overlaps        | a float value between 0 and 1                                | -          | 0.5       |
+| --display-stats       | If True, display evaluation statistics                       | -          | -         |
+| --plot-stats          | If True, plot results                                        | -          | -         |
+| --save-figs           | If True, save plots                                          | -          | -         |
+| --clear-output        | If True, clear output folders                                | -          | -         |
+| --n-eval              | Evaluate every n epochs                                      | -          | -         |
+| --relative-labels     | Path to .csv file that contains                              | -          | -         |
+| --from-xml            | Parse labels from XML files in data > xml_labels             | -          | -         |
+| --augmentation-preset | name of augmentation preset                                  | -          | -         |
+| --image-folder        | Path to folder that contains images, defaults to data/photos | -          | -         |
+| --xml-labels-folder   | Path to folder that contains XML labels                      | -          | -         |
+| --train-tfrecord      | Path to training .tfrecord file                              | -          | -         |
+| --valid-tfrecord      | Path to validation .tfrecord file                            | -          | -         |                            | -         | -          |
 
 ### **Evaluation options**
 
+| commands         | help                              | required   |
+|:-----------------|:----------------------------------|:-----------|
+| --predicted-data | csv file with predictions         | True       |
+| --actual-data    | csv file with actual data         | True       |
+| --train-tfrecord | Path to training .tfrecord file   | True       |
+| --valid-tfrecord | Path to validation .tfrecord file | True       |
+
 ### **Detection options**
+
+| commands      | help                                                     | required   | default   |
+|:--------------|:---------------------------------------------------------|:-----------|:----------|
+| --image       | Path to an image to predict and draw bounding boxes over | -          | -         |
+| --image-dir   | A directory that contains images to predict              | -          | -         |
+| --video       | A video to predict                                       | -          | -         |
+| --codec       | Codec to use for predicting videos                       | -          | mp4v      |
+| --display-vid | Display video during prediction                          | -          | -         |
+| --weights     | Path to trained weights .tf or .weights file             | True       | -         |
+| --output-dir  | Path to directory for saving results                     | -          | -         |
 
 ## **DarkNet models loaded directly from .cfg files**
 This feature was introduced to replace the old hard-coded model,
@@ -653,6 +670,10 @@ Here are the most basic steps to evaluate a trained model:
                   actual_data=actual, 
                   min_overlaps=0.5, 
                   display_stats=True)
+                  
+Command line equivalent:
+
+    % yolotf2 evaluate --input-shape "(416, 416, 3)" --model-cfg "yolo_tf2/config/yolo3.cfg" --train-tfrecord "/path/to/train.tfrecord" --valid-tfrecord "/path/to/valid.tfrecord" --score-threshold 0.1 --predicted-data "output/full_dataset_predictions.csv" --actual-data "data/tfrecords/full_data.csv"
 
 After evaluation, you'll find resulting plots and predictions in the output folder.
 
@@ -682,12 +703,21 @@ A) Photos:
     detector.predict_photos(photos=photos,
                      trained_weights='/path/to/trained/weights')  # .tf or yolov3.weights(80 classes)
 
+Command line equivalent:
+
+    % yolotf2 detect --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --score-threshold 0.5 --iou-threshold 0.5 --image-dir "path/to/image/dir" --weights "path/to/weights"
+
 B) Video
 
     detector.detect_video(
         '/path/to/target/vid',
         '/path/to/trained/weights.tf',
     )
+
+Command line equivalent:
+
+    % yolotf2 detect --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --score-threshold 0.5 --iou-threshold 0.5 --video "path/to/video" --weights "path/to/weights"
+
 
 After predictions is complete you'll find photos/video
  in output > detections

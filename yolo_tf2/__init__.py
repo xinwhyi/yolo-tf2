@@ -1,6 +1,9 @@
 from yolo_tf2 import config, core, utils
 import sys
 
+__author__ = 'Emad Boctor'
+__email__ = 'emad_1989@hotmail.com'
+__license__ = 'MIT'
 __version__ = 1.0
 
 if sys.version_info < (3, 8):
