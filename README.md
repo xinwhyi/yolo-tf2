@@ -554,11 +554,7 @@ of the program.
 
 Command line equivalent:
 
-    yolotf2 train train --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" 
-    --model-cfg "yolo_tf2/config/yolo3.cfg" --image-width 1344 --image-height 756 
-    --dataset-name "dataset_name" --relative-labels "path/to/labels.csv" 
-    --epochs 100 --batch-size 8 --learning-rate 1e3 --merge-evaluation --min-overlaps 0.5
-    --test-size 0.2 --augmentation-preset PRESET1
+    % yolotf2 train --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --image-width 1344 --image-height 756 --dataset-name "dataset_name" --relative-labels "path/to/labels.csv"  --epochs 100 --batch-size 8 --learning-rate 1e3 --merge-evaluation --min-overlaps 0.5 --test-size 0.2 --augmentation-preset PRESET1
 
 **Notes**  
 - if you're training from outside the repo, specify --image-folder "your image folder" and --create-output-dirs flag
