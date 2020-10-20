@@ -976,7 +976,7 @@ AUGMENTATIONS = {
     ],
 }
 
-preset_1 = [
+PRESET1 = [
     [
         [
             {"sequence_group": "meta", "no": 7},
@@ -1106,3 +1106,4 @@ preset_1 = [
         ],
     ],
 ]
+AUGMENTATION_PRESETS = {'PRESET1': PRESET1}

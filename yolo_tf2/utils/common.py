@@ -11,6 +11,7 @@ from xml.etree import ElementTree
 import tensorflow_addons as tfa
 from time import perf_counter
 from logging import handlers
+from pathlib import Path
 from lxml import etree
 import pandas as pd
 import numpy as np
@@ -409,3 +410,21 @@ class Mish(Layer):
     @tf_utils.shape_type_conversion
     def compute_output_shape(self, input_shape):
         return input_shape
+
+
+def create_output_dirs():
+    """
+    Create output dirs in the working dir.
+    Returns:
+        None
+    """
+    dirs = [Path('data') / 'tfrecords']
+    dirs.extend([Path('models'), Path('yolo_logs')])
+    dirs.extend(
+        [
+            Path('output') / sub_folder
+            for sub_folder in ('data', 'detections', 'evaluation', 'plots')
+        ]
+    )
+    for dir_name in dirs:
+        os.makedirs(dir_name.as_posix(), exist_ok=True)

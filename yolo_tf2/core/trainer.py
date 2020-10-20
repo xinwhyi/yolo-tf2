@@ -1,6 +1,10 @@
+from yolo_tf2.utils.common import (
+    transform_images,
+    transform_targets,
+    create_output_dirs,
+)
 from yolo_tf2.utils.common import calculate_loss, timer, default_logger, activate_gpu
 from yolo_tf2.utils.dataset_handlers import read_tfr, save_tfr, get_feature_map
-from yolo_tf2.utils.common import transform_images, transform_targets
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from yolo_tf2.utils.annotation_parsers import parse_voc_folder
 from yolo_tf2.config.augmentation_options import AUGMENTATIONS
@@ -42,6 +46,8 @@ class Trainer(BaseModel):
         max_boxes=100,
         iou_threshold=0.5,
         score_threshold=0.5,
+        image_folder=None,
+        xml_labels_folder=None,
     ):
         """
         Initialize trainer.
@@ -59,6 +65,9 @@ class Trainer(BaseModel):
                 maximum boxes setting.
             iou_threshold: float, values less than the threshold are ignored.
             score_threshold: float, values less than the threshold are ignored.
+            image_folder: Folder that contains images, defaults to data/photos.
+            xml_labels_folder: Folder that contains xml folders, defaults to
+                data/xml_labels_folder.
         """
         self.classes_file = classes_file
         self.class_names = [item.strip() for item in open(classes_file).readlines()]
@@ -74,7 +83,10 @@ class Trainer(BaseModel):
         )
         self.train_tf_record = train_tf_record
         self.valid_tf_record = valid_tf_record
-        self.image_folder = Path(os.path.join('data', 'photos')).absolute().resolve()
+        self.image_folder = (
+            image_folder or Path(os.path.join('data', 'photos')).absolute().resolve()
+        )
+        self.xml_folder = xml_labels_folder or Path('data', 'xml_labels').as_posix()
         self.image_width = image_width
         self.image_height = image_height
 
@@ -104,7 +116,7 @@ class Trainer(BaseModel):
             if check:
                 raise ValueError(f'Got more than one configuration')
             labels_frame = parse_voc_folder(
-                os.path.join('data', 'xml_labels'),
+                self.xml_folder,
                 os.path.join('config', 'voc_conf.json'),
             )
             labels_frame.to_csv(
@@ -192,8 +204,7 @@ class Trainer(BaseModel):
         dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         return dataset
 
-    @staticmethod
-    def augment_photos(new_dataset_conf):
+    def augment_photos(self, new_dataset_conf):
         """
         Augment photos in self.image_paths
         Args:
@@ -212,7 +223,11 @@ class Trainer(BaseModel):
         if not relative_labels:
             raise ValueError(f'No "relative_labels" found in new_dataset_conf')
         augment = DataAugment(
-            relative_labels, AUGMENTATIONS, workers or 32, coordinate_labels
+            relative_labels,
+            AUGMENTATIONS,
+            workers or 32,
+            coordinate_labels,
+            self.image_folder,
         )
         augment.create_sequences(sequences)
         return augment.augment_photos_folder(batch_size or 64)
@@ -416,6 +431,7 @@ class Trainer(BaseModel):
         save_figs=True,
         clear_outputs=False,
         n_epoch_eval=None,
+        create_dirs=False,
     ):
         """
         Train on the dataset.
@@ -441,10 +457,23 @@ class Trainer(BaseModel):
             save_figs: If True and plot_stats=True, figures will be saved
             clear_outputs: If True, old outputs will be cleared
             n_epoch_eval: Conduct evaluation every n epoch.
+            create_dirs: If True, output dirs will be created
 
         Returns:
             history object, pandas DataFrame with statistics, mAP score.
         """
+        assert os.path.exists(
+            self.image_folder
+        ), f'Image folder {self.image_folder} does not exist'
+        assert (
+            len(os.listdir(self.image_folder)) > 1
+        ), f'Empty image folder: {self.image_folder}'
+        if self.xml_folder:
+            assert os.path.exists(
+                self.xml_folder
+            ), f'XML labels folder {self.xml_folder} does not exist'
+        if create_dirs:
+            create_output_dirs()
         min_overlaps = min_overlaps or 0.5
         if clear_outputs:
             self.clear_outputs()

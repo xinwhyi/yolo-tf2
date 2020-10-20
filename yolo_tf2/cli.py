@@ -5,13 +5,22 @@ import sys
 
 
 def execute():
+    """
+    Train or evaluate or detect based on cli args.
+    Returns:
+        None
+    """
     parser = argparse.ArgumentParser()
     if len(sys.argv) == 1:
         display_commands()
         return
-    if (command := sys.argv[1]) in ('train', 'evaluate', 'detect'):
-        del sys.argv[1]
-        parser = add_args(GENERAL, parser)
+    assert (command := sys.argv[1]) in (
+        'train',
+        'evaluate',
+        'detect',
+    ), f'Invalid command {command}'
+    del sys.argv[1]
+    parser = add_args(GENERAL, parser)
     if command == 'train':
         train(parser)
     if command == 'evaluate':

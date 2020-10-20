@@ -7,14 +7,13 @@ install_requires = [
     'imagesize==1.2.0',
     'seaborn==0.10.0',
     'tensorflow==2.2.0',
-    # 'tensorflow-gpu==2.2.0',
+    # 'tensorflow-gpu==2.1.0',
     'numpy~=1.19.2',
     'matplotlib==3.2.1',
     'imgaug==0.4.0',
     'imagecorruptions==1.1.0',
     'tensorflow-addons==0.10.0',
     'configparser~=5.0.0',
-    'opencv-python~=4.2.0.34',
     'scipy==1.4.1',
 ]
 
