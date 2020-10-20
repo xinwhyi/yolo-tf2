@@ -101,19 +101,31 @@ Here are the **packages** you'll need to install before starting to use the dete
 1. **Clone the repo**
 
 ```sh
-git clone https://github.com/emadboctorx/yolov3-keras-tf2/
+% git clone https://github.com/emadboctorx/yolov3-keras-tf2/
 ```
 
 2. **Install**
 
 ```sh
-python3 setup.py install
+% python3 setup.py install
 ```
 3. **Verify installation**
 
 ```sh
-python3 -c 'import yolo_tf2'
+% yolotf2
 ```
+
+OUT:
+
+    Yolo-tf2 1.0
+    
+    Usage:
+        yolotf2 <command> [options] [args]
+    
+    Available commands:
+        train      Create new or use existing dataset and train a model
+        evaluate   Evaluate a trained model
+        detect     Detect a folder of images or a video
 
 <!-- DESCRIPTION -->
 ## **Description**
