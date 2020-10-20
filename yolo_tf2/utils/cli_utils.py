@@ -1,12 +1,12 @@
+from yolo_tf2.config.augmentation_options import AUGMENTATION_PRESETS
+from yolo_tf2.core.evaluator import Evaluator
+from yolo_tf2.core.detector import Detector
+from yolo_tf2.core.trainer import Trainer
 from yolo_tf2.config.cli_args import (
     TRAINING,
     DETECTION,
     EVALUATION,
 )
-from yolo_tf2.core.evaluator import Evaluator
-from yolo_tf2.core.detector import Detector
-from yolo_tf2.config.augmentation_options import AUGMENTATION_PRESETS
-from yolo_tf2.core.trainer import Trainer
 import yolo_tf2
 
 
