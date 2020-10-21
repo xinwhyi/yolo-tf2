@@ -65,8 +65,8 @@ def display_commands(display_all=False):
     print('Use yolotf2 -h to display all command line options')
     if display_all:
         for section, name in zip(
-                (GENERAL, TRAINING, EVALUATION, DETECTION),
-                ('General', 'Training', 'Evaluation', 'Detection')
+            (GENERAL, TRAINING, EVALUATION, DETECTION),
+            ('General', 'Training', 'Evaluation', 'Detection'),
         ):
             display_section(section, name)
 

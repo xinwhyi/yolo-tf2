@@ -8,7 +8,7 @@
   <a href="https://github.com/emadboctorx/yolov3-keras-tf2/">
   </a>
 
-  <h3 align="center">YoloV3 Real Time Object Detector in tensorflow 2.2</h3>
+  <h3 align="center">YoloV3 Real Time Object Detector in tensorflow 2.3</h3>
     .
     <a href="https://github.com/emadboctorx/yolov3-keras-tf2/tree/master/Docs"><strong>Explore the docs »</strong></a>
     ·
@@ -83,18 +83,20 @@
 ### **Prerequisites**
 
 Here are the **packages** you'll need to install before starting to use the detector:
-* pandas==1.0.3
-* lxml==4.5.0
-* opencv_python_headless==4.2.0.34
+
 * imagesize==1.2.0
-* seaborn==0.10.0
-* tensorflow==2.2.1
-* tensorflow-gpu==2.2.1  # Install this manually using pip if you need to
-* numpy==1.18.2
-* matplotlib==3.2.1
+* numpy==1.18.5
+* pandas==1.1.3
+* seaborn==0.11.0
+* tensorflow==2.3.1
+* matplotlib==3.3.2
+* lxml==4.6.1
 * imgaug==0.4.0
-* tensorflow-addons==0.10.0
-* imagecorruptions==1.1.0 
+* tensorflow_addons==0.11.2
+* opencv_python_headless==4.4.0.44
+* imagecorruptions==1.1.0
+* configparser~=5.0.1
+* scipy==1.4.1
 
 ### **Installation**
 
@@ -243,7 +245,7 @@ As models currently load from .cfg files directly, YoloV4 is supported
 the configuration file needs to be supplied and the model is loaded.
 ready for usage (training-evaluation-detection).
 
-### **tensorflow 2.2 & keras functional api**
+### **tensorflow 2.3 & keras functional api**
 
 This program leverages features that were introduced in tensorflow 2.x 
 including: 
