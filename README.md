@@ -115,7 +115,7 @@ Here are the **packages** you'll need to install before starting to use the dete
 % yolotf2
 ```
 
-OUT:
+**OUT:**
 
     Yolo-tf2 1.0
     
@@ -126,6 +126,10 @@ OUT:
         train      Create new or use existing dataset and train a model
         evaluate   Evaluate a trained model
         detect     Detect a folder of images or a video
+    
+    Use yolotf2 <command> -h to see more info about a command
+    
+    Use yolotf2 -h to display all command line options
 
 <!-- DESCRIPTION -->
 ## **Description**
