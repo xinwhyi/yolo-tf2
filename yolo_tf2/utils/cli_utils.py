@@ -13,21 +13,22 @@ import yolo_tf2
 import os
 
 
-def display_section(section):
+def display_section(section, name):
     """
     Display a dictionary of command line options
     Args:
-        section: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
+        section: One of [GENERAL, TRAINING, EVALUATION, DETECTION]
+        name: section name
 
     Returns:
         None
     """
-    section_frame = pd.DataFrame(eval(section)).T.fillna('-')
+    section_frame = pd.DataFrame(section).T.fillna('-')
     section_frame['commands'] = section_frame.index.values
     section_frame['commands'] = section_frame['commands'].apply(lambda c: f'--{c}')
     section_frame = section_frame.reset_index(drop=True).set_index('commands')
     print()
-    print(section.title())
+    print(name)
     print()
     print(
         section_frame[
@@ -63,8 +64,11 @@ def display_commands(display_all=False):
     print('Use yolotf2 <command> -h to see more info about a command', end='\n\n')
     print('Use yolotf2 -h to display all command line options')
     if display_all:
-        for section in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
-            display_section(section)
+        for section, name in zip(
+                (GENERAL, TRAINING, EVALUATION, DETECTION),
+                ('General', 'Training', 'Evaluation', 'Detection')
+        ):
+            display_section(section, name)
 
 
 def add_args(process_args, parser):
@@ -99,7 +103,7 @@ def add_all_args(parser, process_args, *args):
     Add general and process specific args
     Args:
         parser: argparse.ArgumentParser
-        process_args: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
+        process_args: One of [GENERAL, TRAINING, EVALUATION, DETECTION]
         *args: Process required args
 
     Returns:

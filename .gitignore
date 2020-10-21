@@ -27,3 +27,4 @@ test2.py
 build
 dist
 *egg-info
+!requirements.txt
