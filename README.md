@@ -8,7 +8,7 @@
   <a href="https://github.com/emadboctorx/yolov3-keras-tf2/">
   </a>
 
-  <h3 align="center">YoloV3 Real Time Object Detector in tensorflow 2.3</h3>
+  <h3 align="center">Yolo Real Time Object Detector in tensorflow 2.3</h3>
     .
     <a href="https://github.com/emadboctorx/yolov3-keras-tf2/tree/master/Docs"><strong>Explore the docs »</strong></a>
     ·
