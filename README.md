@@ -88,8 +88,8 @@ Here are the **packages** you'll need to install before starting to use the dete
 * opencv_python_headless==4.2.0.34
 * imagesize==1.2.0
 * seaborn==0.10.0
-* tensorflow==2.2.0
-* tensorflow-gpu==2.2.0  # Install this manually using pip if you need to
+* tensorflow==2.2.1
+* tensorflow-gpu==2.2.1  # Install this manually using pip if you need to
 * numpy==1.18.2
 * matplotlib==3.2.1
 * imgaug==0.4.0
@@ -136,16 +136,15 @@ which is is a state-of-the-art, real-time object detection system that is extrem
 fast and accurate.There are many implementations that support tensorflow, only a few that 
 support tensorflow v2 and as I did not find versions that suit my needs so, 
 I decided to create this version which is very flexible and customizable. 
-It requires the Python interpreter version 3.6, 3.7, 3.7+, 
-is not platform specific and is MIT licensed which means you can use, copy, modify, distribute 
-this software however you like.
+It requires the Python interpreter version 3.8, is not platform specific and is 
+MIT licensed which means you can use, copy, modify, distribute this software however you like.
 
 <!-- Updates -->
 
 ## **Updates**
 
 ### 2020-10-20
-- Add command line full support for training, evaluation and detection
+- Add command line full support for training, evaluation and detection.
 
 ### 2020-10-18
 - Add setup.py, direct installation through python3 setup.py install
@@ -157,8 +156,8 @@ this software however you like.
 ### 2020-05-29
 
 - Models are loaded directly from DarkNet .cfg files
-- YoloV4 is currently supported(inference only, no training)
-- Mish activation function(YoloV4)
+- Add YoloV4 full support
+- Add Mish activation function(YoloV4)
 
 <!-- FEATURES -->
 
@@ -237,15 +236,12 @@ including YoloV4 .cfg
 
 ## **YoloV4 support**
 As models currently load from .cfg files directly, YoloV4 is supported
-the configuration file needs to be supplied and the model is loaded, as
-there are technical issues encountered with the loss function, only inference
-using DarkNet weights for YoloV4 is currently supported.
-the configuration file needs to be supplied and the model is loaded and 
-ready for usage.
+the configuration file needs to be supplied and the model is loaded.
+ready for usage (training-evaluation-detection).
 
 ### **tensorflow 2.2 & keras functional api**
 
-This program leverages features that were introduced in tensorflow 2.0 
+This program leverages features that were introduced in tensorflow 2.x 
 including: 
 
 * **Eager execution:** an imperative programming environment that evaluates operations immediately,

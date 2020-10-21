@@ -27,7 +27,7 @@ setup(
     author_email='emad_1989@hotmail.com',
     description='yolo(v3/v4) implementation in keras and tensorflow 2.2',
     install_requires=install_requires,
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     entry_points={
         'console_scripts': [
             'yolotf2=yolo_tf2.cli:execute',
