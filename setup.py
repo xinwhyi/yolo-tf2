@@ -15,6 +15,7 @@ install_requires = [
     'configparser~=5.0.1',
     'scipy==1.4.1',
     'PyQt5==5.15.1'
+    'tabulate==0.8.7'
 ]
 
 setup(
