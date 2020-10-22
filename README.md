@@ -97,6 +97,7 @@ Here are the **packages** you'll need to install before starting to use the dete
 * imagecorruptions==1.1.0
 * configparser~=5.0.1
 * scipy==1.4.1
+* PyQt5==5.15.1
 
 ### **Installation**
 
