@@ -27,9 +27,7 @@ def display_section(section, name):
     section_frame['commands'] = section_frame.index.values
     section_frame['commands'] = section_frame['commands'].apply(lambda c: f'--{c}')
     section_frame = section_frame.reset_index(drop=True).set_index('commands')
-    print()
-    print(name)
-    print()
+    print(f'\n{name}\n')
     print(
         section_frame[
             [
