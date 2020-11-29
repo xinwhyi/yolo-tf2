@@ -240,11 +240,11 @@ class Detector(BaseModel):
                 end='',
             )
             if display:
+                cv2.destroyAllWindows()
                 cv2.imshow(f'frame {current}', adjusted)
             current += 1
             if cv2.waitKey(1) == ord('q'):
                 LOGGER.info(
-                    f'Video detection stopped by user {current}/{length} '
-                    f'frames completed'
+                    f'Video detection aborted {current}/{length} ' f'frames completed'
                 )
                 break

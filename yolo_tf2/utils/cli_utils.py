@@ -13,21 +13,21 @@ import pandas as pd
 import yolo_tf2
 
 
-def display_section(section, name):
+def display_section(name):
     """
     Display a dictionary of command line options
     Args:
-        section: One of [GENERAL, TRAINING, EVALUATION, DETECTION]
-        name: section name
+        name: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
 
     Returns:
         None
     """
-    section_frame = pd.DataFrame(section).T.fillna('-')
+    assert all((GENERAL, TRAINING, DETECTION, EVALUATION))
+    section_frame = pd.DataFrame(eval(name)).T.fillna('-')
     section_frame['flags'] = section_frame.index.values
     section_frame['flags'] = section_frame['flags'].apply(lambda c: f'--{c}')
     section_frame = section_frame.reset_index(drop=True).set_index('flags')
-    print(f'\n{name}\n')
+    print(f'\n{name.title()}\n')
     print(
         section_frame[
             [
@@ -62,11 +62,8 @@ def display_commands(display_all=False):
     print('Use yolotf2 <command> -h to see more info about a command', end='\n\n')
     print('Use yolotf2 -h to display all command line options')
     if display_all:
-        for section, name in zip(
-            (GENERAL, TRAINING, EVALUATION, DETECTION),
-            ('General', 'Training', 'Evaluation', 'Detection'),
-        ):
-            display_section(section, name)
+        for name in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
+            display_section(name)
 
 
 def add_args(process_args, parser):
@@ -141,8 +138,6 @@ def train(parser):
         input_shape=cli_args.input_shape,
         model_configuration=cli_args.model_cfg,
         classes_file=cli_args.classes,
-        image_width=cli_args.image_width,
-        image_height=cli_args.image_height,
         train_tf_record=cli_args.train_tfrecord,
         valid_tf_record=cli_args.valid_tfrecord,
         max_boxes=cli_args.max_boxes,

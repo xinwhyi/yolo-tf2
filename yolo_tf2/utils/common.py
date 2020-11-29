@@ -428,6 +428,7 @@ def get_abs_path(
 
 
 def get_image_files(folder_path):
+    folder_path = get_abs_path(folder_path, verify=True)
     image_files = [
         get_abs_path(folder_path, filename)
         for filename in os.listdir(folder_path)
@@ -435,4 +436,6 @@ def get_image_files(folder_path):
     ]
     if image_files:
         return image_files
-    LOGGER.info(f'No image files found in {folder_path}')
+    issue = f'No image files found in {folder_path}'
+    LOGGER.error(issue)
+    raise FileNotFoundError(issue)

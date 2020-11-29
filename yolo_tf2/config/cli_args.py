@@ -35,8 +35,6 @@ GENERAL = {
 
 TRAINING = {
     'weights': {'help': 'Path to trained weights .tf or .weights file'},
-    'image-width': {'help': 'Image actual width', 'type': int, 'required': True},
-    'image-height': {'help': 'Image actual height', 'type': int, 'required': True},
     'epochs': {'help': 'Number of training epochs', 'type': int, 'default': 100},
     'batch-size': {'help': 'Training batch size', 'type': int, 'default': 8},
     'learning-rate': {'help': 'Training learning rate', 'type': float, 'default': 1e-3},

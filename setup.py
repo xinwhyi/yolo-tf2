@@ -20,7 +20,7 @@ install_requires = [
 
 setup(
     name='yolo_tf2',
-    version='1.0',
+    version='1.1',
     packages=find_packages(),
     url='https://github.com/emadboctorx/yolov3-keras-tf2',
     license='MIT',

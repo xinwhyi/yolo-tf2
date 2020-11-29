@@ -8,7 +8,7 @@
   <a href="https://github.com/emadboctorx/yolov3-keras-tf2/">
   </a>
 
-  <h3 align="center">YoloV3 Real Time Object Detector in tensorflow 2.2</h3>
+  <h3 align="center">YoloV3 Real Time Object Detector in tensorflow 2.3.1</h3>
     .
     <a href="https://github.com/emadboctorx/yolov3-keras-tf2/tree/master/Docs"><strong>Explore the docs »</strong></a>
     ·
@@ -34,7 +34,6 @@
 ## **Table of Contents**
 
 * [Getting Started](#getting-started)
-  * [Prerequisites](#prerequisites)
   * [Installation](#installation)
 
 * [Description](#description)
@@ -49,7 +48,7 @@
     * [Detection](#detection-options)
   * [DarkNet models loaded directly from .cfg files](#darknet-models-loaded-directly-from-cfg-files)
   * [YoloV4 support](#yolov4-support)
-  * [tensorflow-2.X--keras-functional-api](#tensorflow-23--keras-functional-api)
+  * [tensorflow-2.X--keras-functional-api](#tensorflow-231--keras-functional-api)
   * [cpu-gpu support](#cpu--gpu-support)
   * [Random weights and DarkNet weights support](#random-weights-and-darknet-weights-support)
   * [csv-xml annotation parsers.](#csv-xml-annotation-parsers)
@@ -79,22 +78,6 @@
 
 <!-- GETTING STARTED -->
 ## **Getting started**
-
-### **Prerequisites**
-
-Here are the **packages** you'll need to install before starting to use the detector:
-* pandas==1.0.3
-* lxml==4.5.0
-* opencv_python_headless==4.2.0.34
-* imagesize==1.2.0
-* seaborn==0.10.0
-* tensorflow==2.2.0
-* tensorflow-gpu==2.2.0  # Install this manually using pip if you need to
-* numpy==1.18.2
-* matplotlib==3.2.1
-* imgaug==0.4.0
-* tensorflow-addons==0.10.0
-* imagecorruptions==1.1.0 
 
 ### **Installation**
 
@@ -136,7 +119,7 @@ which is is a state-of-the-art, real-time object detection system that is extrem
 fast and accurate.There are many implementations that support tensorflow, only a few that 
 support tensorflow v2 and as I did not find versions that suit my needs so, 
 I decided to create this version which is very flexible and customizable. 
-It requires the Python interpreter version 3.6, 3.7, 3.7+, 
+It requires python 3.8+, 
 is not platform specific and is MIT licensed which means you can use, copy, modify, distribute 
 this software however you like.
 
@@ -184,8 +167,6 @@ this software however you like.
 | flags              | help                                                         | required   | default   |
 |:----------------------|:-------------------------------------------------------------|:-----------|:----------|
 | --weights             | Path to trained weights .tf or .weights file                 | -          | -         |
-| --image-width         | Image actual width                                           | True       | -         |
-| --image-height        | Image actual height                                          | True       | -         |
 | --epochs              | Number of training epochs                                    | -          | 100       |
 | --batch-size          | Training batch size                                          | -          | 8         |
 | --learning-rate       | Training learning rate                                       | -          | 0.001     |
@@ -242,7 +223,7 @@ using DarkNet weights for YoloV4 is currently supported.
 the configuration file needs to be supplied and the model is loaded and 
 ready for usage.
 
-### **tensorflow 2.2 & keras functional api**
+### **tensorflow 2.3.1 & keras functional api**
 
 This program leverages features that were introduced in tensorflow 2.0 
 including: 
@@ -261,7 +242,7 @@ if no GPUs available, the CPU will be used(slow).
 
 Both options are available, and NOTE in case of using DarkNet [yolov3 weights](https://pjreddie.com/media/files/yolov3.weights)
 you must maintain the same number of [COCO classes](https://gist.github.com/AruniRC/7b3dadd004da04c80198557db5da4bda) (80 classes)
-as transfer learning to models with different classes will be supported in future versions of this program.
+as transfer learning to models with different classes will be supported in future versions.
 
 ### **csv-xml annotation parsers**
 
@@ -495,7 +476,7 @@ check [Detector.md](/docs/Detector.md)
 
 
 2- Create a training instance and specify `input_shape`, `classes_file`,
-`image_width` and `image_height` and either specify `image_folder=path_to_folder`
+and either specify `image_folder=/path/to/image/folder`
 or it would default to `data > photos`
     
     from yolo_tf2.core.trainer import Trainer
@@ -505,8 +486,6 @@ or it would default to `data > photos`
              input_shape=(416, 416, 3),
              model_configuration='yolo_tf2/config/yolo3.cfg',
              classes_file='/path/to/classes_file.txt',
-             image_width=1344,  # The original image width
-             image_height=756   # The original image height
              image_folder=/path/to/image/folder
     )
 
@@ -521,7 +500,8 @@ and one of the following:(required)
 or
 
 - `xml_labels_folder`: Path to folder containing xml labels (defaults to `data > xml_labels`) 
-- `voc_conf`: path to .json file containing VOC parsing configuration.
+- `voc_conf`: path to .json file containing VOC parsing configuration (you may use the one
+in `yolotf2 > config` or create a similar structure).
 
 and
 
@@ -578,7 +558,7 @@ of the program.
 
 Command line equivalent:
 
-    % yolotf2 train --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --image-width 1344 --image-height 756 --dataset-name "dataset_name" --relative-labels "path/to/labels.csv"  --epochs 100 --batch-size 8 --learning-rate 1e3 --merge-evaluation --min-overlaps 0.5 --test-size 0.2 --augmentation-preset PRESET1
+    yolotf2 train --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --dataset-name "dataset_name" --relative-labels "path/to/labels.csv"  --epochs 100 --batch-size 8 --learning-rate 1e3 --merge-evaluation --min-overlaps 0.5 --test-size 0.2 --augmentation-preset PRESET1 --image-folder /path/to/image/folder
 
 **Notes**  
 - if you're training from outside the repo, specify --image-folder "your image folder"
@@ -671,7 +651,7 @@ Here are the most basic steps to evaluate a trained model:
                   
 Command line equivalent:
 
-    % yolotf2 evaluate --input-shape "(416, 416, 3)" --model-cfg "yolo_tf2/config/yolo3.cfg" --train-tfrecord "/path/to/train.tfrecord" --valid-tfrecord "/path/to/valid.tfrecord" --score-threshold 0.1 --predicted-data "output/full_dataset_predictions.csv" --actual-data "data/tfrecords/full_data.csv"
+    yolotf2 evaluate --input-shape "(416, 416, 3)" --model-cfg "yolo_tf2/config/yolo3.cfg" --train-tfrecord "/path/to/train.tfrecord" --valid-tfrecord "/path/to/valid.tfrecord" --score-threshold 0.1 --predicted-data "output/full_dataset_predictions.csv" --actual-data "data/tfrecords/full_data.csv"
 
 After evaluation, you'll find resulting plots and predictions in the output folder.
 
@@ -703,7 +683,9 @@ A) Photos:
 
 Command line equivalent:
 
-    % yolotf2 detect --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --score-threshold 0.5 --iou-threshold 0.5 --image-dir "path/to/image/dir" --weights "path/to/weights"
+    yolotf2 detect --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --score-threshold 0.5 --iou-threshold 0.5 --image-dir "path/to/image/dir" --weights "path/to/weights"
+
+or alternatively, if you want to perform detection on a single image specify --image instead of --image-dir
 
 B) Video
 
@@ -714,7 +696,7 @@ B) Video
 
 Command line equivalent:
 
-    % yolotf2 detect --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --score-threshold 0.5 --iou-threshold 0.5 --video "path/to/video" --weights "path/to/weights"
+    yolotf2 detect --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --score-threshold 0.5 --iou-threshold 0.5 --video "path/to/video" --weights "path/to/weights"
 
 
 After predictions is complete you'll find photos/video

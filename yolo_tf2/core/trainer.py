@@ -22,6 +22,7 @@ from tensorflow.keras.callbacks import (
 import tensorflow as tf
 import pandas as pd
 import numpy as np
+import imagesize
 import shutil
 import os
 
@@ -36,8 +37,6 @@ class Trainer(BaseModel):
         input_shape,
         model_configuration,
         classes_file,
-        image_width,
-        image_height,
         train_tf_record=None,
         valid_tf_record=None,
         anchors=None,
@@ -53,8 +52,6 @@ class Trainer(BaseModel):
             input_shape: tuple, (n, n, c)
             model_configuration: Path to yolo DarkNet configuration .cfg file.
             classes_file: Path to file containing dataset classes.
-            image_width: Dataset images actual width.
-            image_height: Dataset images actual height.
             train_tf_record: Path to training tfrecord.
             valid_tf_record: Path to validation tfrecord.
             anchors: numpy array of (w, h) pairs.
@@ -65,6 +62,14 @@ class Trainer(BaseModel):
             score_threshold: float, values less than the threshold are ignored.
             image_folder: Folder that contains images, defaults to data/photos.
         """
+        if image_folder:
+            self.image_folder = get_abs_path(image_folder, verify=True)
+        if not image_folder:
+            self.image_folder = get_abs_path('data', 'photos', verify=True)
+        assert (
+            len((images := os.listdir(self.image_folder))) > 1
+        ), f'Empty image folder: {self.image_folder}'
+        self.image_width, self.image_height = imagesize.get(images[0])
         self.classes_file = get_abs_path(classes_file, verify=True)
         self.class_names = [
             item.strip() for item in open(self.classes_file).readlines()
@@ -85,13 +90,6 @@ class Trainer(BaseModel):
             self.train_tf_record = get_abs_path(train_tf_record, verify=True)
         if valid_tf_record:
             self.valid_tf_record = get_abs_path(valid_tf_record, verify=True)
-        self.image_folder = image_folder
-        if image_folder:
-            self.image_folder = get_abs_path(image_folder, verify=True)
-        if not image_folder:
-            self.image_folder = get_abs_path('data', 'photos', verify=True)
-        self.image_width = image_width
-        self.image_height = image_height
 
     def get_adjusted_labels(self, configuration):
         """
@@ -368,8 +366,8 @@ class Trainer(BaseModel):
                     ['image', 'object_name', 'object_index', 'bx', 'by', 'bw', 'bh']
                     - coordinate_labels: Path to csv file with the following columns:
                     ['image_path', 'object_name', 'image_width', 'image_height',
-                    'x_min', 'y_min', 'x_max', 'y_max', 'relative_width', 'relative_height',
-                    'object_id']
+                    'x_min', 'y_min', 'x_max', 'y_max', 'relative_width',
+                    'relative_height', 'object_id']
                     - xml_labels_folder: Path to folder containing xml labels.
         """
         LOGGER.info(f'Generating new dataset ...')
@@ -459,7 +457,8 @@ class Trainer(BaseModel):
             min_overlaps: a float value between 0 and 1, or a dictionary
                 containing each class in self.class_names mapped to its
                 minimum overlap
-            display_stats: If True and evaluate=True, evaluation statistics will be displayed.
+            display_stats: If True and evaluate=True, evaluation statistics will
+                be displayed.
             plot_stats: If True, Precision and recall curves as well as
                 comparative bar charts will be plotted
             save_figs: If True and plot_stats=True, figures will be saved
@@ -469,9 +468,6 @@ class Trainer(BaseModel):
         Returns:
             history object, pandas DataFrame with statistics, mAP score.
         """
-        assert (
-            len(os.listdir(self.image_folder)) > 1
-        ), f'Empty image folder: {self.image_folder}'
         min_overlaps = min_overlaps or 0.5
         if clear_outputs:
             self.clear_outputs()
@@ -507,8 +503,6 @@ class Trainer(BaseModel):
                 self.input_shape,
                 self.model_configuration,
                 self.classes_file,
-                self.image_width,
-                self.image_height,
                 self.train_tf_record,
                 self.valid_tf_record,
                 self.anchors,
@@ -525,6 +519,7 @@ class Trainer(BaseModel):
                 plot_stats,
                 save_figs,
                 checkpoint_path,
+                self.image_folder,
             )
             callbacks.append(mid_train_eval)
         history = self.training_model.fit(
@@ -559,8 +554,6 @@ class MidTrainingEvaluator(Callback, Trainer):
         input_shape,
         model_configuration,
         classes_file,
-        image_width,
-        image_height,
         train_tf_record,
         valid_tf_record,
         anchors,
@@ -577,6 +570,7 @@ class MidTrainingEvaluator(Callback, Trainer):
         plot_stats,
         save_figs,
         weights_file,
+        image_folder,
     ):
         """
         Initialize mid-training evaluation settings.
@@ -584,8 +578,6 @@ class MidTrainingEvaluator(Callback, Trainer):
             input_shape: tuple, (n, n, c)
             model_configuration: Path to DarkNet cfg file.
             classes_file: File containing class names \n delimited.
-            image_width: Width of the original image.
-            image_height: Height of the original image.
             train_tf_record: TFRecord file.
             valid_tf_record: TFRecord file.
             anchors: numpy array of (w, h) pairs.
@@ -606,14 +598,13 @@ class MidTrainingEvaluator(Callback, Trainer):
                 comparison bar charts will be plotted.
             save_figs: If True and display_stats, plots will be save to output folder
             weights_file: .tf file(most recent checkpoint)
+            image_folder: Path to folder containing training images.
         """
         Trainer.__init__(
             self,
             input_shape,
             model_configuration,
             classes_file,
-            image_width,
-            image_height,
             train_tf_record,
             valid_tf_record,
             anchors,
@@ -621,6 +612,7 @@ class MidTrainingEvaluator(Callback, Trainer):
             max_boxes,
             iou_threshold,
             score_threshold,
+            image_folder,
         )
         self.n_epochs = n_epochs
         self.evaluation_args = [

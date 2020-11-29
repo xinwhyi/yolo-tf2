@@ -35,7 +35,8 @@ class DataAugment:
         Initialize augmentation session.
         Args:
             labels_file: cvv file containing relative image labels
-            augmentation_map: A structured dictionary containing categorized augmentation
+            augmentation_map: A structured dictionary containing categorized
+                augmentation
             sequences.
             workers: Parallel threads.
             converted_coordinates_file: csv file containing converted from relative
@@ -81,7 +82,8 @@ class DataAugment:
                 ['meta', 'arithmetic', 'artistic', 'blend', 'gaussian_blur', 'color',
                 'contrast', 'convolution', 'edges', 'flip', 'geometric', 'corrupt_like',
                 'pi_like', 'pooling', 'segmentation', 'size']
-            -no: augmentation number ('no' key in self.augmentation_map > chosen sequence_group)
+            -no: augmentation number ('no' key in self.augmentation_map >
+                chosen sequence_group)
                 Example:
                     sequences = (
                     [[{'sequence_group': 'meta', 'no': 5},
@@ -466,7 +468,8 @@ class DataAugment:
                 - pooling
                 - segmentation
                 - size
-            display_boxes: Preview augmentations with bounding boxes before/after(if any)
+            display_boxes: Preview augmentations with bounding boxes
+                before/after(if any)
             move_after: tuple(x, y) coordinates to move the 'after' window.
 
         Returns:

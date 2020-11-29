@@ -94,7 +94,7 @@ class Evaluator(BaseModel):
     def get_dataset_next(dataset):
         try:
             return next(dataset)
-        except tf.errors.UnknownError as e:  # sometimes encountered when reading from google drive
+        except tf.errors.UnknownError as e:
             LOGGER.error(f'Error occurred during reading from dataset\n{e}')
 
     def predict_dataset(self, dataset, workers=16, split='train', batch_size=64):
@@ -135,7 +135,8 @@ class Evaluator(BaseModel):
                     completed = f'{self.predicted}/{self.dataset_size}'
                     percent = (self.predicted / self.dataset_size) * 100
                     print(
-                        f'\rpredicting {completed_image} {completed}\t{percent}% completed',
+                        f'\rpredicting {completed_image} {completed}\t{percent}'
+                        f'% completed',
                         end='',
                     )
                     self.predicted += 1
@@ -155,7 +156,8 @@ class Evaluator(BaseModel):
         Make predictions on both training and validation data sets
             and save results as csv in output folder.
         Args:
-            trained_weights: Trained .tf weights or .weights file(in case self.classes = 80).
+            trained_weights: Trained .tf weights or .weights file
+                (in case self.classes = 80).
             merge: If True a single file will be saved for training
                 and validation sets predictions combined.
             workers: Parallel predictions.
