@@ -106,7 +106,7 @@ def add_all_args(parser, process_args, *args):
     """
     parser = add_args(process_args, parser)
     cli_args = parser.parse_args()
-    for arg in ['input_shape', 'model_cfg', 'classes', *args]:
+    for arg in ['model_cfg', 'classes', *args]:
         assert eval(f'cli_args.{arg}'), f'{arg} is required'
     return cli_args
 
@@ -120,16 +120,11 @@ def train(parser):
     Returns:
         None
     """
-    required_args = ('image_width', 'image_height')
-    cli_args = add_all_args(parser, TRAINING, *required_args)
+    cli_args = add_all_args(parser, TRAINING)
     if not cli_args.train_tfrecord and not cli_args.valid_tfrecord:
-        assert cli_args.dataset_name and cli_args.test_size, (
-            f'--dataset-name and --test-size are required or specify '
-            f'--train-tfrecord and --valid-tfrecord'
-        )
         assert (
-            cli_args.relative_labels or cli_args.from_xml
-        ), 'No labels provided: specify --relative-labels or --from-xml'
+            cli_args.relative_labels or cli_args.xml_labels_folder
+        ), 'No labels provided: specify --relative-labels or --xml-labels-folder'
     if cli_args.augmentation_preset:
         assert (
             preset := cli_args.augmentation_preset
@@ -153,7 +148,6 @@ def train(parser):
             'dataset_name': (d_name := cli_args.dataset_name),
             'relative_labels': cli_args.relative_labels,
             'test_size': cli_args.test_size,
-            'from_xml': cli_args.from_xml,
             'voc_conf': cli_args.voc_conf,
             'augmentation': bool((preset := cli_args.augmentation_preset)),
             'sequences': AUGMENTATION_PRESETS.get(preset),

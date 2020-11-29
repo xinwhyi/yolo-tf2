@@ -23,7 +23,9 @@ def save_fig(title, save_figures=True):
         None
     """
     if save_figures:
-        saving_path = get_abs_path('output', 'plots', f'{title}.png')
+        saving_path = get_abs_path(
+            'output', 'plots', f'{title}.png', create_parents=True
+        )
         if os.path.exists(saving_path):
             return
         plt.savefig(saving_path)

@@ -6,7 +6,6 @@ GENERAL = {
         'help': 'Input shape ex: (416, 416, 3)',
         'default': (416, 416, 3),
         'type': ast.literal_eval,
-        'required': True,
     },
     'classes': {'help': 'Path to classes .txt file', 'required': True},
     'model-cfg': {'help': 'Yolo DarkNet configuration .cfg file', 'required': True},
@@ -38,10 +37,11 @@ TRAINING = {
     'epochs': {'help': 'Number of training epochs', 'type': int, 'default': 100},
     'batch-size': {'help': 'Training batch size', 'type': int, 'default': 8},
     'learning-rate': {'help': 'Training learning rate', 'type': float, 'default': 1e-3},
-    'dataset-name': {'help': 'Name of the checkpoint'},
+    'dataset-name': {'help': 'Name of the checkpoint', 'required': True},
     'test-size': {
         'help': 'test dataset relative size (a value between 0 and 1)',
         'type': float,
+        'default': 0.1,
     },
     'evaluate': {
         'help': 'If True, evaluation will be conducted after training',
