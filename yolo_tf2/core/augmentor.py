@@ -1,10 +1,15 @@
-from yolo_tf2.utils.common import ratios_to_coordinates, timer, LOGGER
+from yolo_tf2.utils.common import (
+    ratios_to_coordinates,
+    timer,
+    LOGGER,
+    get_abs_path,
+    get_image_files,
+)
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from imgaug import augmenters as iaa
 from imgaug import parameters as iap
-from pathlib import Path
 import pandas as pd
 import imgaug as ia
 import numpy as np
@@ -38,16 +43,13 @@ class DataAugment:
             image_folder: Folder containing images other than data/photos/
         """
         assert all([ia, iaa, iap])
-        self.labels_file = labels_file
-        self.mapping = pd.read_csv(labels_file)
-        self.image_folder = Path('data', 'photos').absolute().resolve()
+        self.labels_file = get_abs_path(labels_file, verify=True)
+        self.mapping = pd.read_csv(self.labels_file)
         if image_folder:
-            self.image_folder = Path(image_folder).absolute().resolve()
-        self.image_paths = [
-            (Path(self.image_folder) / image).absolute().resolve()
-            for image in os.listdir(self.image_folder)
-            if not image.startswith('.')
-        ]
+            self.image_folder = get_abs_path(image_folder, verify=True)
+        else:
+            self.image_folder = get_abs_path('data', 'photos', create_parents=True)
+        self.image_paths = get_image_files(self.image_folder)
         self.image_paths_copy = self.image_paths.copy()
         if not self.image_paths:
             LOGGER.error(
@@ -120,8 +122,11 @@ class DataAugment:
         Returns:
             numpy array(image), image_path
         """
-        assert os.path.exists(image_path), f'{image_path} does not exist'
+        image_path = get_abs_path(image_path, verify=True)
         image = cv2.imread(image_path)
+        if image is None:
+            LOGGER.warning(f'Failed to read image: {image_path}')
+            return
         if new_size:
             return cv2.resize(image, new_size)
         return image, image_path
@@ -317,7 +322,7 @@ class DataAugment:
                 f'aug-{self.session_id}-sequence-{current_sequence}'
                 f'-{os.path.basename(image_path)}'
             )
-            new_image_path = os.path.join(self.image_folder, new_image_name)
+            new_image_path = get_abs_path(self.image_folder, new_image_name)
             bbs, frame_before = self.get_bounding_boxes_over_image(image_path)
             augmented_image, augmented_boxes = augmentation_sequence(
                 image=image, bounding_boxes=bbs
@@ -373,8 +378,8 @@ class DataAugment:
         augmentation_frame = pd.DataFrame(
             self.augmentation_data, columns=self.mapping.columns
         )
-        saving_path = os.path.join(
-            'output', 'data', f'augmented_data_plus_original.csv'
+        saving_path = get_abs_path(
+            'output', 'data', f'augmented_data_plus_original.csv', create_parents=True
         )
         combined = pd.concat([self.mapping, augmentation_frame])
         for item in ['bx', 'by', 'bw', 'bh']:

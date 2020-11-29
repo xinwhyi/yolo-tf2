@@ -31,10 +31,6 @@ GENERAL = {
         'default': 32,
         'type': int,
     },
-    'create-output-dirs': {
-        'help': 'If True, output folders will be created in the working directory',
-        'action': 'store_true',
-    },
 }
 
 TRAINING = {
@@ -72,10 +68,7 @@ TRAINING = {
     'clear-output': {'help': 'If True, clear output folders', 'action': 'store_true'},
     'n-eval': {'help': 'Evaluate every n epochs', 'type': int},
     'relative-labels': {'help': 'Path to .csv file that contains'},
-    'from-xml': {
-        'help': 'Parse labels from XML files in data > xml_labels',
-        'action': 'store_true',
-    },
+    'voc-conf': {'help': 'VOC configuration .json file'},
     'augmentation-preset': {'help': 'name of augmentation preset'},
     'image-folder': {
         'help': 'Path to folder that contains images, defaults to data/photos',

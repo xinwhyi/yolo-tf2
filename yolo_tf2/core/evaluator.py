@@ -5,6 +5,7 @@ from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
     transform_images,
     get_detection_data,
+    get_abs_path,
     LOGGER,
     timer,
 )
@@ -195,11 +196,17 @@ class Evaluator(BaseModel):
         )
         if merge:
             predictions = pd.concat([train_predictions, valid_predictions])
-            save_path = os.path.join('output', 'data', 'full_dataset_predictions.csv')
+            save_path = get_abs_path(
+                'output', 'data', 'full_dataset_predictions.csv', create_parents=True
+            )
             predictions.to_csv(save_path, index=False)
             return predictions
-        train_path = os.path.join('output', 'data', 'train_dataset_predictions.csv')
-        valid_path = os.path.join('output', 'data', 'valid_dataset_predictions.csv')
+        train_path = get_abs_path(
+            'output', 'data', 'train_dataset_predictions.csv', create_parents=True
+        )
+        valid_path = get_abs_path(
+            'output', 'data', 'valid_dataset_predictions.csv', create_parents=True
+        )
         train_predictions.to_csv(train_path, index=False)
         valid_predictions.to_csv(valid_path, index=False)
         return train_predictions, valid_predictions
@@ -244,9 +251,7 @@ class Evaluator(BaseModel):
                 f'{[item for item in self.class_names if item not in min_overlaps]} '
                 f'are missing in min_overlaps'
             )
-        actual = actual.rename(
-            columns={'Image Path': 'image', 'Object Name': 'object_name'}
-        )
+        actual = actual.rename(columns={'image_path': 'image'})
         actual['image'] = actual['image'].apply(lambda x: os.path.split(x)[-1])
         random_gen = np.random.default_rng()
         if 'detection_key' not in detections.columns:
@@ -258,15 +263,15 @@ class Evaluator(BaseModel):
         assert (
             not total_frame.empty
         ), 'No common image names found between actual and detections'
-        total_frame['x_max_common'] = total_frame[['X_max', 'x2']].min(1)
-        total_frame['x_min_common'] = total_frame[['X_min', 'x1']].max(1)
-        total_frame['y_max_common'] = total_frame[['Y_max', 'y2']].min(1)
-        total_frame['y_min_common'] = total_frame[['Y_min', 'y1']].max(1)
+        total_frame['x_max_common'] = total_frame[['x_max', 'x2']].min(1)
+        total_frame['x_min_common'] = total_frame[['x_min', 'x1']].max(1)
+        total_frame['y_max_common'] = total_frame[['y_max', 'y2']].min(1)
+        total_frame['y_min_common'] = total_frame[['y_min', 'y1']].max(1)
         true_intersect = (total_frame['x_max_common'] > total_frame['x_min_common']) & (
             total_frame['y_max_common'] > total_frame['y_min_common']
         )
         total_frame = total_frame[true_intersect]
-        actual_areas = self.get_area(total_frame, ['X_min', 'Y_min', 'X_max', 'Y_max'])
+        actual_areas = self.get_area(total_frame, ['x_min', 'y_min', 'x_max', 'y_max'])
         predicted_areas = self.get_area(total_frame, ['x1', 'y1', 'x2', 'y2'])
         intersect_areas = self.get_area(
             total_frame,
@@ -397,7 +402,7 @@ class Evaluator(BaseModel):
                 ].sum()
                 * 100
             )
-            stats['Actual'] = len(actual_data[actual_data["Object Name"] == class_name])
+            stats['Actual'] = len(actual_data[actual_data["object_name"] == class_name])
             stats['detections'] = len(
                 detection_data[detection_data["object_name"] == class_name]
             )
@@ -470,10 +475,10 @@ class Evaluator(BaseModel):
         Returns:
             pandas DataFrame with statistics, mAP score.
         """
-        actual_data['Object Name'] = actual_data['Object Name'].apply(
+        actual_data['object_name'] = actual_data['object_name'].apply(
             lambda x: x.replace("b'", '').replace("'", '')
         )
-        class_counts = actual_data['Object Name'].value_counts().to_dict()
+        class_counts = actual_data['object_name'].value_counts().to_dict()
         true_positives = self.get_true_positives(
             prediction_data, actual_data, min_overlaps
         )

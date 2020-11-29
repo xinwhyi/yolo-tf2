@@ -49,7 +49,7 @@
     * [Detection](#detection-options)
   * [DarkNet models loaded directly from .cfg files](#darknet-models-loaded-directly-from-cfg-files)
   * [YoloV4 support](#yolov4-support)
-  * [tensorflow-2.X--keras-functional-api](#tensorflow-22--keras-functional-api)
+  * [tensorflow-2.X--keras-functional-api](#tensorflow-23--keras-functional-api)
   * [cpu-gpu support](#cpu--gpu-support)
   * [Random weights and DarkNet weights support](#random-weights-and-darknet-weights-support)
   * [csv-xml annotation parsers.](#csv-xml-annotation-parsers)
@@ -101,18 +101,18 @@ Here are the **packages** you'll need to install before starting to use the dete
 1. **Clone the repo**
 
 ```sh
-% git clone https://github.com/emadboctorx/yolov3-keras-tf2/
+git clone https://github.com/emadboctorx/yolov3-keras-tf2/
 ```
 
 2. **Install**
 
 ```sh
-% python3 setup.py install
+python3 setup.py install
 ```
 3. **Verify installation**
 
 ```sh
-% yolotf2
+yolotf2
 ```
 
 OUT:
@@ -168,7 +168,7 @@ this software however you like.
 
 ### **General options**
 
-| commands             | help                                                              | required   | default       |
+| flags             | help                                                              | required   | default       |
 |:---------------------|:------------------------------------------------------------------|:-----------|:--------------|
 | --input-shape        | Input shape ex: (416, 416, 3)                                     | True       | (416, 416, 3) |
 | --classes            | Path to classes .txt file                                         | True       | -             |
@@ -178,11 +178,10 @@ this software however you like.
 | --score-threshold    | Confidence score threshold                                        | -          | 0.5           |
 | --workers            | Concurrent tasks(in areas where that is possible)                 | -          | 16            |
 | --process-batch-size | Batch size of operations that needs batching (excluding training) | -          | 32            |
-| --create-output-dirs | If True, output folders will be created in the working directory  | -          | -             |
 
 ### **Training options**
 
-| commands              | help                                                         | required   | default   |
+| flags              | help                                                         | required   | default   |
 |:----------------------|:-------------------------------------------------------------|:-----------|:----------|
 | --weights             | Path to trained weights .tf or .weights file                 | -          | -         |
 | --image-width         | Image actual width                                           | True       | -         |
@@ -201,17 +200,17 @@ this software however you like.
 | --save-figs           | If True, save plots                                          | -          | -         |
 | --clear-output        | If True, clear output folders                                | -          | -         |
 | --n-eval              | Evaluate every n epochs                                      | -          | -         |
-| --relative-labels     | Path to .csv file that contains                              | -          | -         |
-| --from-xml            | Parse labels from XML files in data > xml_labels             | -          | -         |
+| --relative-labels     | Path to .csv file that contains labels                       | -          | -         |
+| --xml-labels-folder   | Path to folder that contains XML labels                      | -          | -         |
+| --voc-conf            | Path to .json VOC configuration file if --xml-labels-folder  | -          | -         |
 | --augmentation-preset | name of augmentation preset                                  | -          | -         |
 | --image-folder        | Path to folder that contains images, defaults to data/photos | -          | -         |
-| --xml-labels-folder   | Path to folder that contains XML labels                      | -          | -         |
 | --train-tfrecord      | Path to training .tfrecord file                              | -          | -         |
-| --valid-tfrecord      | Path to validation .tfrecord file                            | -          | -         |                            | -         | -          |
+| --valid-tfrecord      | Path to validation .tfrecord file                            | -          | -         |
 
 ### **Evaluation options**
 
-| commands         | help                              | required   |
+| flags         | help                              | required   |
 |:-----------------|:----------------------------------|:-----------|
 | --predicted-data | csv file with predictions         | True       |
 | --actual-data    | csv file with actual data         | True       |
@@ -220,7 +219,7 @@ this software however you like.
 
 ### **Detection options**
 
-| commands      | help                                                     | required   | default   |
+| flags      | help                                                     | required   | default   |
 |:--------------|:---------------------------------------------------------|:-----------|:----------|
 | --image       | Path to an image to predict and draw bounding boxes over | -          | -         |
 | --image-dir   | A directory that contains images to predict              | -          | -         |
@@ -338,7 +337,6 @@ There are 2 currently supported formats that the program is able to read and tra
 	<object>
 		<name>Street Sign</name>
 		<bndbox>
-		<bndbox>
 			<xmin>1220.99999952</xmin>
 			<ymin>91.999999854</ymin>
 			<xmax>1317.999999456</xmax>
@@ -354,7 +352,6 @@ There are 2 currently supported formats that the program is able to read and tra
 			<ymax>275.000000184</ymax>
 		</bndbox>
 	</object>
-	<object>
 		<name>Street Sign</name>
 		<bndbox>
 			<xmin>798.99999984</xmin>
@@ -367,7 +364,7 @@ There are 2 currently supported formats that the program is able to read and tra
 
 * **CSV with relative labels that looks like the following example:**
 
-Image | Object Name | Object Index | bx | by | bw | bh | #
+image | object_name | object_index | bx | by | bw | bh | #
 --- | --- | --- | --- |--- |--- |--- |--- 
 img1.png | dog | 2 | 0.438616071 | 0.51521164 | 0.079613095	| 0.123015873
 img1.png | car | 1 | 0.177827381 | 0.381613757 | 0.044642857 | 0.091269841
@@ -476,8 +473,8 @@ images if you need to preview any stage of the training/augmentation/evaluation/
 
 ### **Photo & video detection**
 
-Detections can be performed on photos or videos using Predictor class
-check [Predictor.md](/docs/Predictor.md)
+Detections can be performed on photos or videos using Detector class
+check [Detector.md](/docs/Detector.md)
 
 ## **Usage**
 
@@ -485,12 +482,7 @@ check [Predictor.md](/docs/Predictor.md)
 
 **Here are the most basic steps to train using a custom dataset:**
 
-1- Copy images to data > photos
-
-2- If labels are in the XML VOC [format](#csv-xml-annotation-parsers),
-copy label xml files to data > labels
-
-3- Create classes .txt file that contains classes delimited by \n
+1- Create classes .txt file that contains classes delimited by \n
 
 
     dog
@@ -502,8 +494,9 @@ copy label xml files to data > labels
     laptop
 
 
-4- Create a training instance and specify `input_shape`, `classes_file`,
-`image_width` and `image_height`
+2- Create a training instance and specify `input_shape`, `classes_file`,
+`image_width` and `image_height` and either specify `image_folder=path_to_folder`
+or it would default to `data > photos`
     
     from yolo_tf2.core.trainer import Trainer
     
@@ -514,9 +507,10 @@ copy label xml files to data > labels
              classes_file='/path/to/classes_file.txt',
              image_width=1344,  # The original image width
              image_height=756   # The original image height
+             image_folder=/path/to/image/folder
     )
 
-5- Create dataset configuration(dict) that contains the following keys:
+3- Create dataset configuration(dict) that contains the following keys:
 
 - `dataset_name`: TFRecord prefix(required)
 
@@ -526,7 +520,8 @@ and one of the following:(required)
 
 or
 
-- `from_xml`: `True` 
+- `xml_labels_folder`: Path to folder containing xml labels (defaults to `data > xml_labels`) 
+- `voc_conf`: path to .json file containing VOC parsing configuration.
 
 and
 
@@ -547,19 +542,20 @@ and if `augmentation` this implies the following:
                     'augmentation': True,
       }
 
-6- Create new anchor generation configuration(dict) that contains the following keys(optional):
+4- Create new anchor generation configuration(dict) that contains the following keys(optional):
 
 - `anchor_no`: number of anchors(should be 9)
 and one of the following:
     -  `relative_labels`: same as dataset configuration above
-    - `from_xml`: same as dataset configuration above
+    - `xml_labels_folder`: same as dataset configuration above
     
           anchors_conf = {
                           'anchor_no': 9,
                           'relative_labels':  '/path/to/labels.csv'
           }
+    - `voc_conf`: should be included if `xml_labels_folder` is specified
 
-7- Start the training
+5- Start the training
 
 **Note** 
 
@@ -585,18 +581,20 @@ Command line equivalent:
     % yolotf2 train --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --image-width 1344 --image-height 756 --dataset-name "dataset_name" --relative-labels "path/to/labels.csv"  --epochs 100 --batch-size 8 --learning-rate 1e3 --merge-evaluation --min-overlaps 0.5 --test-size 0.2 --augmentation-preset PRESET1
 
 **Notes**  
-- if you're training from outside the repo, specify --image-folder "your image folder" and --create-output-dirs flag
+- if you're training from outside the repo, specify --image-folder "your image folder"
 - To train on an already existing dataset, specify --train-tfrecord and --valid-tfrecord 
-- You can specify to parse from xml directly using --from-xml flag and if labels are not in data/xml_labels 
-you can specify folder using --xml-labels-folder
+- You can specify to parse from xml folder directly using --xml-labels-folder if
+outside the repo, otherwise, you might place labels in `data > xml_labels`
 - You can specify weights using --weights 
              
 
 After the training completes:
 
 1. The trained model is saved in models folder(which you can use to resume training later/predict photos or videos)
-2. The resulting TFRecords and their corresponding csv data are saved in data > tfrecords
+2. The resulting TFRecords and their corresponding csv data are saved in `data > tfrecords`
 3. The resulting figures and evaluation results are saved in output folder.
+And if you're training from outside the repo, the folders above will be created in
+the working directory(if they do not exist)
 
 ### **Augmentation**
 
@@ -605,11 +603,11 @@ After the training completes:
 If you need to augment photos and take your time to examine/visualize the results,
 here are the steps:
 
-1- Copy images to data > photos or specify `image_folder` param
+1- Copy images to data > photos or specify `image_folder=path_tom_image_folder`
 
 2- Ensure you have a csv file containing the labels in the format 
 mentioned [here](#csv-xml-annotation-parsers), if you have labels
-in xml VOC format, you can easily convert them using utils > annotation_parsers.py > 
+in xml VOC format, you can easily convert them using utils > annotation_parsers.py` 
 `parse_voc_folder()` (everything is explained in the docstrings)
 
 3- Create augmentation instance:

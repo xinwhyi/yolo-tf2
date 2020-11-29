@@ -1,23 +1,24 @@
+from yolo_tf2.utils.common import get_abs_path
 import json
 import os
 
 
 def set_voc_tags(
-    tree,
-    folder,
-    filename,
-    path,
-    size,
-    width,
-    height,
-    depth,
-    obj,
-    obj_name,
-    box,
-    x0,
-    y0,
-    x1,
-    y1,
+    tree='annotation',
+    folder='folder',
+    filename='filename',
+    path='path',
+    size='size',
+    width='width',
+    height='height',
+    depth='depth',
+    obj='object',
+    obj_name='name',
+    box='bndbox',
+    x0='xmin',
+    y0='ymin',
+    x1='xmax',
+    y1='ymax',
     conf_file='voc_conf.json',
     indent=4,
     sort_keys=False,
@@ -47,8 +48,8 @@ def set_voc_tags(
     Returns:
         None.
     """
-    if conf_file in os.listdir(''):
-        os.remove(os.path.join(os.getcwd(), conf_file))
+    if (conf_file := get_abs_path(conf_file, verify=True)) in os.listdir():
+        os.remove(conf_file)
     conf = {
         'Tree': {
             'Tree Tag': tree,
@@ -64,7 +65,7 @@ def set_voc_tags(
         },
         'Object': {
             'Object Tag': obj,
-            'Object Name': obj_name,
+            'object_name': obj_name,
             'Object Box': {
                 'Object Box Tag': box,
                 'X0': x0,
@@ -80,35 +81,4 @@ def set_voc_tags(
 
 
 if __name__ == '__main__':
-    tree_tag = 'annotation'
-    folder_tag = 'folder'
-    file_tag = 'filename'
-    path_tag = 'path'
-    size_tag = 'size'
-    width_tag = 'width'
-    height_tag = 'height'
-    depth_tag = 'depth'
-    object_tag = 'object'
-    object_name = 'name'
-    box_tag = 'bndbox'
-    x_min_tag = 'xmin'
-    y_min_tag = 'ymin'
-    x_max_tag = 'xmax'
-    y_max_tag = 'ymax'
-    set_voc_tags(
-        tree_tag,
-        folder_tag,
-        file_tag,
-        path_tag,
-        size_tag,
-        width_tag,
-        height_tag,
-        depth_tag,
-        object_tag,
-        object_name,
-        box_tag,
-        x_min_tag,
-        y_min_tag,
-        x_max_tag,
-        y_max_tag,
-    )
+    set_voc_tags()

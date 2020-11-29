@@ -1,4 +1,5 @@
 from yolo_tf2.config.augmentation_options import AUGMENTATION_PRESETS
+from yolo_tf2.utils.common import get_abs_path, get_image_files
 from yolo_tf2.core.evaluator import Evaluator
 from yolo_tf2.core.detector import Detector
 from yolo_tf2.core.trainer import Trainer
@@ -10,25 +11,23 @@ from yolo_tf2.config.cli_args import (
 )
 import pandas as pd
 import yolo_tf2
-import os
 
 
-def display_section(section):
+def display_section(section, name):
     """
     Display a dictionary of command line options
     Args:
-        section: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
+        section: One of [GENERAL, TRAINING, EVALUATION, DETECTION]
+        name: section name
 
     Returns:
         None
     """
-    section_frame = pd.DataFrame(eval(section)).T.fillna('-')
-    section_frame['commands'] = section_frame.index.values
-    section_frame['commands'] = section_frame['commands'].apply(lambda c: f'--{c}')
-    section_frame = section_frame.reset_index(drop=True).set_index('commands')
-    print()
-    print(section.title())
-    print()
+    section_frame = pd.DataFrame(section).T.fillna('-')
+    section_frame['flags'] = section_frame.index.values
+    section_frame['flags'] = section_frame['flags'].apply(lambda c: f'--{c}')
+    section_frame = section_frame.reset_index(drop=True).set_index('flags')
+    print(f'\n{name}\n')
     print(
         section_frame[
             [
@@ -63,8 +62,11 @@ def display_commands(display_all=False):
     print('Use yolotf2 <command> -h to see more info about a command', end='\n\n')
     print('Use yolotf2 -h to display all command line options')
     if display_all:
-        for section in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
-            display_section(section)
+        for section, name in zip(
+            (GENERAL, TRAINING, EVALUATION, DETECTION),
+            ('General', 'Training', 'Evaluation', 'Detection'),
+        ):
+            display_section(section, name)
 
 
 def add_args(process_args, parser):
@@ -99,7 +101,7 @@ def add_all_args(parser, process_args, *args):
     Add general and process specific args
     Args:
         parser: argparse.ArgumentParser
-        process_args: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
+        process_args: One of [GENERAL, TRAINING, EVALUATION, DETECTION]
         *args: Process required args
 
     Returns:
@@ -147,7 +149,6 @@ def train(parser):
         iou_threshold=cli_args.iou_threshold,
         score_threshold=cli_args.score_threshold,
         image_folder=cli_args.image_folder,
-        xml_labels_folder=cli_args.xml_labels_folder,
     )
     trainer.train(
         epochs=cli_args.epochs,
@@ -158,6 +159,7 @@ def train(parser):
             'relative_labels': cli_args.relative_labels,
             'test_size': cli_args.test_size,
             'from_xml': cli_args.from_xml,
+            'voc_conf': cli_args.voc_conf,
             'augmentation': bool((preset := cli_args.augmentation_preset)),
             'sequences': AUGMENTATION_PRESETS.get(preset),
             'aug_workers': cli_args.workers,
@@ -175,7 +177,6 @@ def train(parser):
         save_figs=cli_args.save_figs,
         clear_outputs=cli_args.clear_output,
         n_epoch_eval=cli_args.n_eval,
-        create_dirs=cli_args.create_output_dirs,
     )
 
 
@@ -240,15 +241,18 @@ def detect(parser):
     ]
     assert (
         len(check_args) == 1
-    ), 'Expected --image or --image-dir or --vidoe, got more than one'
+    ), 'Expected --image or --image-dir or --video, got more than one'
     target_photos = []
     if cli_args.image:
-        target_photos.append(cli_args.image)
+        target_photos.append(get_abs_path(cli_args.image))
     if cli_args.image_dir:
-        target_photos.extend(os.listdir(cli_args.image_dir))
+        target_photos.extend(
+            get_abs_path(cli_args.image_dir, image)
+            for image in get_image_files(cli_args.image_dir)
+        )
     if cli_args.image or cli_args.image_dir:
         detector.predict_photos(
-            photos=[target_photos],
+            photos=target_photos,
             trained_weights=cli_args.weights,
             batch_size=cli_args.process_batch_size,
             workers=cli_args.workers,
@@ -256,8 +260,8 @@ def detect(parser):
         )
     if cli_args.video:
         detector.detect_video(
-            video=cli_args.video,
-            trained_weights=cli_args.weights,
+            video=get_abs_path(cli_args.video, verify=True),
+            trained_weights=get_abs_path(cli_args.weights, verify=True),
             codec=cli_args.codec,
             display=cli_args.display_vid,
             output_dir=cli_args.output_dir,
