@@ -6,6 +6,7 @@ install_requires = [
     'pandas==1.1.3',
     'seaborn==0.11.0',
     'tensorflow==2.3.1',
+    # tensorflow-gpu==2.3.1
     'matplotlib==3.3.2',
     'lxml==4.6.1',
     'imgaug==0.4.0',
