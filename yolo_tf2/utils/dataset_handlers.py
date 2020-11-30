@@ -173,13 +173,10 @@ def write_tf_record(output_path, groups, data, trainer=None):
             x_max /= image_width
             y_min /= image_height
             y_max /= image_height
-            try:
-                image_data = open(image_path, 'rb').read()
-                key = hashlib.sha256(image_data).hexdigest()
-                training_example = create_example(separate_data, key, image_data)
-                r_writer.write(training_example.SerializeToString())
-            except Exception as e:
-                LOGGER.error(e)
+            image_data = open(image_path, 'rb').read()
+            key = hashlib.sha256(image_data).hexdigest()
+            training_example = create_example(separate_data, key, image_data)
+            r_writer.write(training_example.SerializeToString())
     print()
 
 

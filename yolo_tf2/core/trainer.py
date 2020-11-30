@@ -410,7 +410,7 @@ class Trainer(BaseModel):
         return [
             ReduceLROnPlateau(verbose=1, patience=4),
             ModelCheckpoint(
-                os.path.join(checkpoint_path),
+                get_abs_path(checkpoint_path),
                 verbose=1,
                 save_weights_only=True,
             ),
@@ -494,7 +494,7 @@ class Trainer(BaseModel):
             for mask in self.masks
         ]
         self.training_model.compile(optimizer=optimizer, loss=loss)
-        checkpoint_path = os.path.join(
+        checkpoint_path = get_abs_path(
             'models', f'{dataset_name or "trained"}_model.tf'
         )
         callbacks = self.create_callbacks(checkpoint_path)

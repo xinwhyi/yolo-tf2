@@ -169,7 +169,7 @@ class Evaluator(BaseModel):
                 or 2 pandas DataFrame(s) for training and validation
                 data sets respectively.
         """
-        self.create_models()
+        self.create_models(reverse_v4=True if trained_weights.endswith('tf') else False)
         self.load_weights(trained_weights)
         features = get_feature_map()
         train_dataset = read_tfr(

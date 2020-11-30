@@ -89,6 +89,9 @@ git clone https://github.com/emadboctorx/yolov3-keras-tf2/
 
 2. **Install**
 
+**Note:** If you're installing on a system with an available GPU, 
+comment out `tensorflow-gpu` in `setup.py`
+
 ```sh
 python3 setup.py install
 ```
@@ -98,7 +101,7 @@ python3 setup.py install
 yolotf2
 ```
 
-OUT:
+**OUT:**
 
     Yolo-tf2 1.0
     
@@ -127,17 +130,28 @@ this software however you like.
 
 ## **Updates**
 
-### 2020-10-20
+### [1.4] - 2020-11-30
+- Fix a bug that draws extra irrelevant boxes over photos for V4 configuration
+- Fix a bug that causes shape incompatibility issues
+- Remove extra required parameters `image_width`, `image_height` which are currently 
+measured during runtime and a few others
+- Fix a bug that prevents output from saving due to path mishandling
+- Unify all IO operations to go through `yolo_tf2.utils.common.get_abs_path()`
+- All commands are currently supported from any working directory, so users shouldn't worry
+about creating folders and matching names, which is handled automatically.
+- Upgrade all dependencies to latest versions 
+
+### [1.3] - 2020-10-20
 - Add command line full support for training, evaluation and detection
 
-### 2020-10-18
+### [1.2] - 2020-10-18
 - Add setup.py, direct installation through python3 setup.py install
 - Restructure package folders
 
-### 2020-06-02
+### [1.1] - 2020-06-02
 - Add yolov4 support
 
-### 2020-05-29
+### [1.0] - 2020-05-29
 
 - Models are loaded directly from DarkNet .cfg files
 - YoloV4 is currently supported(inference only, no training)
@@ -151,9 +165,9 @@ this software however you like.
 
 ### **General options**
 
-| flags             | help                                                              | required   | default       |
+| flags                | help                                                              | required   | default       |
 |:---------------------|:------------------------------------------------------------------|:-----------|:--------------|
-| --input-shape        | Input shape ex: (416, 416, 3)                                     | True       | (416, 416, 3) |
+| --input-shape        | Input shape ex: (416, 416, 3)                                     | -          | (416, 416, 3) |
 | --classes            | Path to classes .txt file                                         | True       | -             |
 | --model-cfg          | Yolo DarkNet configuration .cfg file                              | True       | -             |
 | --max-boxes          | Maximum boxes per image                                           | -          | 100           |
@@ -164,14 +178,14 @@ this software however you like.
 
 ### **Training options**
 
-| flags              | help                                                         | required   | default   |
+| flags                 | help                                                         | required   | default   |
 |:----------------------|:-------------------------------------------------------------|:-----------|:----------|
 | --weights             | Path to trained weights .tf or .weights file                 | -          | -         |
 | --epochs              | Number of training epochs                                    | -          | 100       |
 | --batch-size          | Training batch size                                          | -          | 8         |
 | --learning-rate       | Training learning rate                                       | -          | 0.001     |
-| --dataset-name        | Name of the checkpoint                                       | -          | -         |
-| --test-size           | test dataset relative size (a value between 0 and 1)         | -          | -         |
+| --dataset-name        | Name of the checkpoint                                       | True       | -         |
+| --test-size           | test dataset relative size (a value between 0 and 1)         | -          | 0.1       |
 | --evaluate            | If True, evaluation will be conducted after training         | -          | -         |
 | --merge-evaluation    | If False, evaluate training and validation separately        | -          | -         |
 | --shuffle-buffer      | Dataset shuffle buffer                                       | -          | 512       |
@@ -181,17 +195,17 @@ this software however you like.
 | --save-figs           | If True, save plots                                          | -          | -         |
 | --clear-output        | If True, clear output folders                                | -          | -         |
 | --n-eval              | Evaluate every n epochs                                      | -          | -         |
-| --relative-labels     | Path to .csv file that contains labels                       | -          | -         |
-| --xml-labels-folder   | Path to folder that contains XML labels                      | -          | -         |
-| --voc-conf            | Path to .json VOC configuration file if --xml-labels-folder  | -          | -         |
+| --relative-labels     | Path to .csv file that contains                              | -          | -         |
+| --voc-conf            | VOC configuration .json file                                 | -          | -         |
 | --augmentation-preset | name of augmentation preset                                  | -          | -         |
 | --image-folder        | Path to folder that contains images, defaults to data/photos | -          | -         |
+| --xml-labels-folder   | Path to folder that contains XML labels                      | -          | -         |
 | --train-tfrecord      | Path to training .tfrecord file                              | -          | -         |
 | --valid-tfrecord      | Path to validation .tfrecord file                            | -          | -         |
 
 ### **Evaluation options**
 
-| flags         | help                              | required   |
+| flags            | help                              | required   |
 |:-----------------|:----------------------------------|:-----------|
 | --predicted-data | csv file with predictions         | True       |
 | --actual-data    | csv file with actual data         | True       |
@@ -200,7 +214,7 @@ this software however you like.
 
 ### **Detection options**
 
-| flags      | help                                                     | required   | default   |
+| flags         | help                                                     | required   | default   |
 |:--------------|:---------------------------------------------------------|:-----------|:----------|
 | --image       | Path to an image to predict and draw bounding boxes over | -          | -         |
 | --image-dir   | A directory that contains images to predict              | -          | -         |

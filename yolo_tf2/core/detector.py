@@ -157,7 +157,7 @@ class Detector(BaseModel):
         Returns:
             None
         """
-        self.create_models()
+        self.create_models(reverse_v4=True if trained_weights.endswith('tf') else False)
         self.load_weights(get_abs_path(trained_weights, verify=True))
         to_predict = photos.copy()
         saved_paths = set()
@@ -211,7 +211,7 @@ class Detector(BaseModel):
         Returns:
             None
         """
-        self.create_models()
+        self.create_models(reverse_v4=True if trained_weights.endswith('tf') else False)
         self.load_weights(trained_weights)
         vid = cv2.VideoCapture(video)
         length = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))

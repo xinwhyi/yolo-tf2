@@ -4,7 +4,7 @@ import sys
 __author__ = 'Emad Boctor'
 __email__ = 'emad_1989@hotmail.com'
 __license__ = 'MIT'
-__version__ = 1.1
+__version__ = 1.4
 
 if sys.version_info < (3, 8):
     print(f'Yolo-tf2 {__version__} requires Python 3.8+')

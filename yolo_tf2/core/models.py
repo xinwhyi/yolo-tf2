@@ -463,7 +463,6 @@ class BaseModel:
         Returns:
             None
         """
-        weights_file = get_abs_path(weights_file, verify=True)
         assert (suffix := Path(weights_file).suffix) in [
             '.tf',
             '.weights',
@@ -472,10 +471,10 @@ class BaseModel:
             self.classes == 80 if suffix == '.weights' else 1
         ), f'DarkNet model should contain 80 classes, {self.classes} is given.'
         if suffix == '.tf':
-            self.training_model.load_weights(weights_file)
+            self.training_model.load_weights(get_abs_path(weights_file))
             LOGGER.info(f'Loaded weights: {weights_file} ... success')
             return
-        with open(weights_file, 'rb') as weights_data:
+        with open(get_abs_path(weights_file, verify=True), 'rb') as weights_data:
             LOGGER.info(f'Loading pre-trained weights ...')
             major, minor, revision, seen, _ = np.fromfile(
                 weights_data, dtype=np.int32, count=5
