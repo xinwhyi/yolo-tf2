@@ -337,8 +337,6 @@ class Evaluator(BaseModel):
                 'x_max_common',
                 'y_max_common',
                 'iou',
-                'image_width',
-                'image_height',
                 'true_positive',
                 'false_positive',
                 'detection_key',
@@ -365,8 +363,6 @@ class Evaluator(BaseModel):
                 'x2',
                 'y2',
                 'iou',
-                'image_width',
-                'image_height',
                 'true_positive',
                 'false_positive',
                 'detection_key',
@@ -502,17 +498,10 @@ class Evaluator(BaseModel):
         )
         map_score = stats['Average Precision'].mean()
         if display_stats:
-            pd.set_option(
-                'display.max_rows',
-                None,
-                'display.max_columns',
-                None,
-                'display.width',
-                None,
-            )
+            pd.set_option('expand_frame_repr', False)
             print(stats.sort_values(by='Average Precision', ascending=False))
             print(f'mAP score: {map_score}%')
-            pd.reset_option('display.[max_rows, max_columns, width]')
+            pd.set_option('expand_frame_repr', True)
         if plot_results:
             visualize_pr(calculated, save_figs, fig_prefix)
             visualize_evaluation_stats(stats, fig_prefix)

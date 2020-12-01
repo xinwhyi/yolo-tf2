@@ -3,7 +3,13 @@ from yolo_tf2.utils.common import (
     transform_targets,
     get_abs_path,
 )
-from yolo_tf2.utils.common import calculate_loss, timer, LOGGER, activate_gpu
+from yolo_tf2.utils.common import (
+    calculate_loss,
+    timer,
+    LOGGER,
+    activate_gpu,
+    get_image_files,
+)
 from yolo_tf2.utils.dataset_handlers import read_tfr, save_tfr, get_feature_map
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from yolo_tf2.utils.annotation_parsers import parse_voc_folder
@@ -67,7 +73,7 @@ class Trainer(BaseModel):
         if not image_folder:
             self.image_folder = get_abs_path('data', 'photos', verify=True)
         assert (
-            len((images := os.listdir(self.image_folder))) > 1
+            len((images := get_image_files(self.image_folder))) > 1
         ), f'Empty image folder: {self.image_folder}'
         self.image_width, self.image_height = imagesize.get(images[0])
         self.classes_file = get_abs_path(classes_file, verify=True)
