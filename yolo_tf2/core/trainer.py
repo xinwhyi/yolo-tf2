@@ -371,7 +371,7 @@ class Trainer(BaseModel):
                     - relative_labels: Path to csv file with the following columns:
                     ['image', 'object_name', 'object_index', 'bx', 'by', 'bw', 'bh']
                     - coordinate_labels: Path to csv file with the following columns:
-                    ['image_path', 'object_name', 'image_width', 'image_height',
+                    ['image_path', 'object_name', 'img_width', 'img_height',
                     'x_min', 'y_min', 'x_max', 'y_max', 'relative_width',
                     'relative_height', 'object_id']
                     - xml_labels_folder: Path to folder containing xml labels.

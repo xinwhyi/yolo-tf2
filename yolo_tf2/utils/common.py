@@ -295,8 +295,8 @@ def get_detection_data(image, image_name, outputs, class_names):
     data['object_name'] = np.array(class_names)[classes.astype('int64')]
     data['image'] = image_name
     data['score'] = scores
-    data['image_width'] = w
-    data['image_height'] = h
+    data['img_width'] = w
+    data['img_height'] = h
     data = data[
         [
             'image',
@@ -306,8 +306,8 @@ def get_detection_data(image, image_name, outputs, class_names):
             'x2',
             'y2',
             'score',
-            'image_width',
-            'image_height',
+            'img_width',
+            'img_height',
         ]
     ]
     return data

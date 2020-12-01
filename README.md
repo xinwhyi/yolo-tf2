@@ -89,8 +89,10 @@ git clone https://github.com/emadboctorx/yolov3-keras-tf2/
 
 2. **Install**
 
-**Note:** If you're installing on a system with an available GPU, 
-comment out `tensorflow-gpu` in `setup.py`
+**Notes:** 
+
+- If you're installing on a system with an available GPU, comment out `tensorflow-gpu` in `requirements.txt`
+- If you encountered issues during the installation, use `pip install -r requirements` and then:
 
 ```sh
 python3 setup.py install

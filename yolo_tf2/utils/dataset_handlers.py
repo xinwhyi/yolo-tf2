@@ -15,8 +15,8 @@ def get_feature_map():
         features
     """
     features = {
-        'image_width': tf.io.FixedLenFeature([], tf.int64),
-        'image_height': tf.io.FixedLenFeature([], tf.int64),
+        'img_width': tf.io.FixedLenFeature([], tf.int64),
+        'img_height': tf.io.FixedLenFeature([], tf.int64),
         'image_path': tf.io.FixedLenFeature([], tf.string),
         'image_file': tf.io.FixedLenFeature([], tf.string),
         'image_key': tf.io.FixedLenFeature([], tf.string),
@@ -59,10 +59,10 @@ def create_example(separate_data, key, image_data):
     image_file_name = os.path.split(image[0])[-1]
     image_format = image_file_name.split('.')[-1]
     features = {
-        'image_height': tf.train.Feature(
+        'img_height': tf.train.Feature(
             int64_list=tf.train.Int64List(value=[image_height[0]])
         ),
-        'image_width': tf.train.Feature(
+        'img_width': tf.train.Feature(
             int64_list=tf.train.Int64List(value=[image_width[0]])
         ),
         'image_path': tf.train.Feature(

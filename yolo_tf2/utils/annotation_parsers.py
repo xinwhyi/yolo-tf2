@@ -74,8 +74,8 @@ def adjust_frame(frame, cache_file=None):
     object_id = 1
     for item in frame.columns[2:]:
         frame[item] = frame[item].astype(float).astype(int)
-    frame['relative_width'] = (frame['x_max'] - frame['x_min']) / frame['image_width']
-    frame['relative_height'] = (frame['y_max'] - frame['y_min']) / frame['image_height']
+    frame['relative_width'] = (frame['x_max'] - frame['x_min']) / frame['img_width']
+    frame['relative_height'] = (frame['y_max'] - frame['y_min']) / frame['img_height']
     for object_name in list(frame['object_name'].drop_duplicates()):
         frame.loc[frame['object_name'] == object_name, 'object_id'] = object_id
         object_id += 1
@@ -110,8 +110,8 @@ def parse_voc_folder(folder_path, voc_conf):
     frame_columns = [
         'image_path',
         'object_name',
-        'image_width',
-        'image_height',
+        'img_width',
+        'img_height',
         'x_min',
         'y_min',
         'x_max',
@@ -148,7 +148,7 @@ def adjust_non_voc_csv(csv_file, image_path, image_width, image_height):
         image_height: image height
     Returns:
         pandas DataFrame with the following columns:
-        ['image_path', 'object_name', 'image_width', 'image_height', 'x_min',
+        ['image_path', 'object_name', 'img_width', 'img_height', 'x_min',
        'y_min', 'x_max', 'y_max', 'relative_width', 'relative_height',
        'object_id']
     """
@@ -160,8 +160,8 @@ def adjust_non_voc_csv(csv_file, image_path, image_width, image_height):
         lambda item: get_abs_path(image_path, item)
     )
     new_frame['object_name'] = old_frame['object_name']
-    new_frame['image_width'] = image_width
-    new_frame['image_height'] = image_height
+    new_frame['img_width'] = image_width
+    new_frame['img_height'] = image_height
     new_frame['relative_width'] = old_frame['bw']
     new_frame['relative_height'] = old_frame['bh']
     new_frame['object_id'] = old_frame['object_index'] + 1
@@ -189,8 +189,8 @@ def adjust_non_voc_csv(csv_file, image_path, image_width, image_height):
         [
             'image_path',
             'object_name',
-            'image_width',
-            'image_height',
+            'img_width',
+            'img_height',
             'x_min',
             'y_min',
             'x_max',

@@ -281,6 +281,9 @@ class Evaluator(BaseModel):
         )
         iou_areas = intersect_areas / (actual_areas + predicted_areas - intersect_areas)
         total_frame['iou'] = iou_areas
+        total_frame = total_frame.drop(['img_width_x', 'img_height_x'], axis=1).rename(
+            {'img_width_y': 'img_width', 'img_height_y': 'img_height'}, axis=1
+        )
         if isinstance(min_overlaps, float):
             return total_frame[total_frame['iou'] >= min_overlaps]
         if isinstance(min_overlaps, dict):
@@ -332,6 +335,8 @@ class Evaluator(BaseModel):
                 'image',
                 'object_name',
                 'score',
+                'img_width',
+                'img_height',
                 'x_min_common',
                 'y_min_common',
                 'x_max_common',
@@ -363,6 +368,8 @@ class Evaluator(BaseModel):
                 'x2',
                 'y2',
                 'iou',
+                'img_width',
+                'img_height',
                 'true_positive',
                 'false_positive',
                 'detection_key',

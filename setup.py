@@ -1,24 +1,6 @@
 from setuptools import setup, find_packages
 
-install_requires = [
-    'imagesize==1.2.0',
-    'numpy==1.18.5',
-    'pandas==1.1.4',
-    'seaborn==0.11.0',
-    'tensorflow==2.3.1',
-    # 'tensorflow-gpu==2.3.1',
-    'matplotlib==3.3.3',
-    'lxml==4.6.2',
-    'imgaug==0.4.0',
-    'tensorflow-addons==0.11.2',
-    'opencv-python-headless==4.4.0.44',
-    'imagecorruptions==1.1.1',
-    'configparser~=5.0.1',
-    'scipy==1.4.1',
-    'PyQt5==5.15.2',
-    'tabulate==0.8.7',
-    'ipykernel==5.3.4',
-]
+install_requires = [dep.strip() for dep in open('requirements.txt')]
 
 setup(
     name='yolo_tf2',
