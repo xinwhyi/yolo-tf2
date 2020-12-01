@@ -1,9 +1,15 @@
 from yolo_tf2.utils.common import (
     transform_images,
     transform_targets,
-    create_output_dirs,
+    get_abs_path,
 )
-from yolo_tf2.utils.common import calculate_loss, timer, LOGGER, activate_gpu
+from yolo_tf2.utils.common import (
+    calculate_loss,
+    timer,
+    LOGGER,
+    activate_gpu,
+    get_image_files,
+)
 from yolo_tf2.utils.dataset_handlers import read_tfr, save_tfr, get_feature_map
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from yolo_tf2.utils.annotation_parsers import parse_voc_folder
@@ -19,10 +25,10 @@ from tensorflow.keras.callbacks import (
     Callback,
     EarlyStopping,
 )
-from pathlib import Path
 import tensorflow as tf
 import pandas as pd
 import numpy as np
+import imagesize
 import shutil
 import os
 
@@ -37,8 +43,6 @@ class Trainer(BaseModel):
         input_shape,
         model_configuration,
         classes_file,
-        image_width,
-        image_height,
         train_tf_record=None,
         valid_tf_record=None,
         anchors=None,
@@ -47,7 +51,6 @@ class Trainer(BaseModel):
         iou_threshold=0.5,
         score_threshold=0.5,
         image_folder=None,
-        xml_labels_folder=None,
     ):
         """
         Initialize trainer.
@@ -55,8 +58,6 @@ class Trainer(BaseModel):
             input_shape: tuple, (n, n, c)
             model_configuration: Path to yolo DarkNet configuration .cfg file.
             classes_file: Path to file containing dataset classes.
-            image_width: Dataset images actual width.
-            image_height: Dataset images actual height.
             train_tf_record: Path to training tfrecord.
             valid_tf_record: Path to validation tfrecord.
             anchors: numpy array of (w, h) pairs.
@@ -66,11 +67,19 @@ class Trainer(BaseModel):
             iou_threshold: float, values less than the threshold are ignored.
             score_threshold: float, values less than the threshold are ignored.
             image_folder: Folder that contains images, defaults to data/photos.
-            xml_labels_folder: Folder that contains xml folders, defaults to
-                data/xml_labels_folder.
         """
-        self.classes_file = classes_file
-        self.class_names = [item.strip() for item in open(classes_file).readlines()]
+        if image_folder:
+            self.image_folder = get_abs_path(image_folder, verify=True)
+        if not image_folder:
+            self.image_folder = get_abs_path('data', 'photos', verify=True)
+        assert (
+            len((images := get_image_files(self.image_folder))) > 1
+        ), f'Empty image folder: {self.image_folder}'
+        self.image_width, self.image_height = imagesize.get(images[0])
+        self.classes_file = get_abs_path(classes_file, verify=True)
+        self.class_names = [
+            item.strip() for item in open(self.classes_file).readlines()
+        ]
         super().__init__(
             input_shape,
             model_configuration,
@@ -83,12 +92,10 @@ class Trainer(BaseModel):
         )
         self.train_tf_record = train_tf_record
         self.valid_tf_record = valid_tf_record
-        self.image_folder = (
-            image_folder or Path(os.path.join('data', 'photos')).absolute().resolve()
-        )
-        self.xml_folder = xml_labels_folder or Path('data', 'xml_labels').as_posix()
-        self.image_width = image_width
-        self.image_height = image_height
+        if train_tf_record:
+            self.train_tf_record = get_abs_path(train_tf_record, verify=True)
+        if valid_tf_record:
+            self.valid_tf_record = get_abs_path(valid_tf_record, verify=True)
 
     def get_adjusted_labels(self, configuration):
         """
@@ -96,7 +103,8 @@ class Trainer(BaseModel):
         Args:
             configuration: A dictionary containing any of the following keys:
                 - relative_labels
-                - from_xml
+                - xml_labels_folder
+                - voc_conf (required if xml_labels_folder)
                 - coordinate_labels
 
         Returns:
@@ -112,22 +120,26 @@ class Trainer(BaseModel):
                 self.image_height,
             )
             check += 1
-        if configuration.get('from_xml'):
+        if xml_folder := configuration.get('xml_labels_folder'):
             if check:
                 raise ValueError(f'Got more than one configuration')
+            voc_conf = configuration.get('voc_conf')
+            assert voc_conf, f'Missing VOC configuration json file.'
             labels_frame = parse_voc_folder(
-                self.xml_folder,
-                os.path.join('config', 'voc_conf.json'),
+                xml_folder,
+                get_abs_path(voc_conf, verify=True),
             )
             labels_frame.to_csv(
-                os.path.join('output', 'data', 'parsed_from_xml.csv'),
+                get_abs_path(
+                    'output', 'data', 'parsed_from_xml.csv', create_parents=True
+                ),
                 index=False,
             )
             check += 1
-        if configuration.get('coordinate_labels'):
+        if coordinate_labels := configuration.get('coordinate_labels'):
             if check:
                 raise ValueError(f'Got more than one configuration')
-            labels_frame = pd.read_csv(configuration['coordinate_labels'])
+            labels_frame = pd.read_csv(get_abs_path(coordinate_labels, verify=True))
             check += 1
         return labels_frame
 
@@ -151,8 +163,8 @@ class Trainer(BaseModel):
         relative_dims = np.array(
             list(
                 zip(
-                    labels_frame['Relative Width'],
-                    labels_frame['Relative Height'],
+                    labels_frame['relative_width'],
+                    labels_frame['relative_height'],
                 )
             )
         )
@@ -248,7 +260,8 @@ class Trainer(BaseModel):
         Evaluate on training and validation datasets.
         Args:
             weights_file: Path to trained .tf file.
-            merge: If False, training and validation datasets will be evaluated separately.
+            merge: If False, training and validation datasets will be evaluated
+                separately.
             workers: Parallel predictions.
             shuffle_buffer: Buffer size for shuffling datasets.
             min_overlaps: a float value between 0 and 1, or a dictionary
@@ -284,10 +297,10 @@ class Trainer(BaseModel):
                 LOGGER.info('Aborting evaluations, no detections found')
                 return
             training_actual = pd.read_csv(
-                os.path.join('data', 'tfrecords', 'training_data.csv')
+                get_abs_path('data', 'tfrecords', 'training_data.csv', verify=True)
             )
             valid_actual = pd.read_csv(
-                os.path.join('data', 'tfrecords', 'test_data.csv')
+                get_abs_path('data', 'tfrecords', 'test_data.csv', verify=True)
             )
             training_stats, training_map = evaluator.calculate_map(
                 training_predictions,
@@ -308,7 +321,9 @@ class Trainer(BaseModel):
                 plot_stats,
             )
             return training_stats, training_map, valid_stats, valid_map
-        actual_data = pd.read_csv(os.path.join('data', 'tfrecords', 'full_data.csv'))
+        actual_data = pd.read_csv(
+            get_abs_path('data', 'tfrecords', 'full_data.csv', verify=True)
+        )
         if predictions.empty:
             LOGGER.info('Aborting evaluations, no detections found')
             return
@@ -330,13 +345,11 @@ class Trainer(BaseModel):
         Returns:
             None
         """
-        for folder_name in os.listdir(os.path.join('..', 'output')):
+        for folder_name in os.listdir(get_abs_path('output', verify=True)):
             if not folder_name.startswith('.'):
-                full_path = (
-                    Path(os.path.join('output', folder_name)).absolute().resolve()
-                )
+                full_path = get_abs_path('output', folder_name)
                 for file_name in os.listdir(full_path):
-                    full_file_path = Path(os.path.join(full_path, file_name))
+                    full_file_path = get_abs_path(full_path, file_name)
                     if os.path.isdir(full_file_path):
                         shutil.rmtree(full_file_path)
                     else:
@@ -356,19 +369,19 @@ class Trainer(BaseModel):
                 - aug_batch_size(optional if augmentation is True) defaults to 64.
                 And one of the following is required:
                     - relative_labels: Path to csv file with the following columns:
-                    ['Image', 'Object Name', 'Object Index', 'bx', 'by', 'bw', 'bh']
+                    ['image', 'object_name', 'object_index', 'bx', 'by', 'bw', 'bh']
                     - coordinate_labels: Path to csv file with the following columns:
-                    ['Image Path', 'Object Name', 'Image Width', 'Image Height',
-                    'X_min', 'Y_min', 'X_max', 'Y_max', 'Relative Width', 'Relative Height',
-                    'Object ID']
-                    - from_xml: True or False to parse from xml_labels folder.
+                    ['image_path', 'object_name', 'img_width', 'img_height',
+                    'x_min', 'y_min', 'x_max', 'y_max', 'relative_width',
+                    'relative_height', 'object_id']
+                    - xml_labels_folder: Path to folder containing xml labels.
         """
         LOGGER.info(f'Generating new dataset ...')
         test_size = new_dataset_conf.get('test_size')
         labels_frame = self.generate_new_frame(new_dataset_conf)
         save_tfr(
             labels_frame,
-            os.path.join('data', 'tfrecords'),
+            get_abs_path('data', 'tfrecords', create_parents=True),
             new_dataset_conf['dataset_name'],
             test_size,
             self,
@@ -403,11 +416,11 @@ class Trainer(BaseModel):
         return [
             ReduceLROnPlateau(verbose=1, patience=4),
             ModelCheckpoint(
-                os.path.join(checkpoint_path),
+                get_abs_path(checkpoint_path),
                 verbose=1,
                 save_weights_only=True,
             ),
-            TensorBoard(log_dir=os.path.join('..', 'yolo_logs')),
+            TensorBoard(log_dir=get_abs_path('data', 'tfrecords', create_parents=True)),
             EarlyStopping(monitor='val_loss', patience=6, verbose=1),
         ]
 
@@ -431,7 +444,6 @@ class Trainer(BaseModel):
         save_figs=True,
         clear_outputs=False,
         n_epoch_eval=None,
-        create_dirs=False,
     ):
         """
         Train on the dataset.
@@ -451,29 +463,17 @@ class Trainer(BaseModel):
             min_overlaps: a float value between 0 and 1, or a dictionary
                 containing each class in self.class_names mapped to its
                 minimum overlap
-            display_stats: If True and evaluate=True, evaluation statistics will be displayed.
+            display_stats: If True and evaluate=True, evaluation statistics will
+                be displayed.
             plot_stats: If True, Precision and recall curves as well as
                 comparative bar charts will be plotted
             save_figs: If True and plot_stats=True, figures will be saved
             clear_outputs: If True, old outputs will be cleared
             n_epoch_eval: Conduct evaluation every n epoch.
-            create_dirs: If True, output dirs will be created
 
         Returns:
             history object, pandas DataFrame with statistics, mAP score.
         """
-        assert os.path.exists(
-            self.image_folder
-        ), f'Image folder {self.image_folder} does not exist'
-        assert (
-            len(os.listdir(self.image_folder)) > 1
-        ), f'Empty image folder: {self.image_folder}'
-        if self.xml_folder:
-            assert os.path.exists(
-                self.xml_folder
-            ), f'XML labels folder {self.xml_folder} does not exist'
-        if create_dirs:
-            create_output_dirs()
         min_overlaps = min_overlaps or 0.5
         if clear_outputs:
             self.clear_outputs()
@@ -482,7 +482,7 @@ class Trainer(BaseModel):
         if new_anchors_conf:
             LOGGER.info(f'Generating new anchors ...')
             self.generate_new_anchors(new_anchors_conf)
-        self.create_models()
+        self.create_models(reverse_v4=True)
         if weights:
             self.load_weights(weights)
         if new_dataset_conf:
@@ -500,7 +500,7 @@ class Trainer(BaseModel):
             for mask in self.masks
         ]
         self.training_model.compile(optimizer=optimizer, loss=loss)
-        checkpoint_path = os.path.join(
+        checkpoint_path = get_abs_path(
             'models', f'{dataset_name or "trained"}_model.tf'
         )
         callbacks = self.create_callbacks(checkpoint_path)
@@ -509,8 +509,6 @@ class Trainer(BaseModel):
                 self.input_shape,
                 self.model_configuration,
                 self.classes_file,
-                self.image_width,
-                self.image_height,
                 self.train_tf_record,
                 self.valid_tf_record,
                 self.anchors,
@@ -527,6 +525,7 @@ class Trainer(BaseModel):
                 plot_stats,
                 save_figs,
                 checkpoint_path,
+                self.image_folder,
             )
             callbacks.append(mid_train_eval)
         history = self.training_model.fit(
@@ -561,8 +560,6 @@ class MidTrainingEvaluator(Callback, Trainer):
         input_shape,
         model_configuration,
         classes_file,
-        image_width,
-        image_height,
         train_tf_record,
         valid_tf_record,
         anchors,
@@ -579,6 +576,7 @@ class MidTrainingEvaluator(Callback, Trainer):
         plot_stats,
         save_figs,
         weights_file,
+        image_folder,
     ):
         """
         Initialize mid-training evaluation settings.
@@ -586,8 +584,6 @@ class MidTrainingEvaluator(Callback, Trainer):
             input_shape: tuple, (n, n, c)
             model_configuration: Path to DarkNet cfg file.
             classes_file: File containing class names \n delimited.
-            image_width: Width of the original image.
-            image_height: Height of the original image.
             train_tf_record: TFRecord file.
             valid_tf_record: TFRecord file.
             anchors: numpy array of (w, h) pairs.
@@ -608,14 +604,13 @@ class MidTrainingEvaluator(Callback, Trainer):
                 comparison bar charts will be plotted.
             save_figs: If True and display_stats, plots will be save to output folder
             weights_file: .tf file(most recent checkpoint)
+            image_folder: Path to folder containing training images.
         """
         Trainer.__init__(
             self,
             input_shape,
             model_configuration,
             classes_file,
-            image_width,
-            image_height,
             train_tf_record,
             valid_tf_record,
             anchors,
@@ -623,6 +618,7 @@ class MidTrainingEvaluator(Callback, Trainer):
             max_boxes,
             iou_threshold,
             score_threshold,
+            image_folder,
         )
         self.n_epochs = n_epochs
         self.evaluation_args = [
@@ -649,23 +645,20 @@ class MidTrainingEvaluator(Callback, Trainer):
         if not (epoch + 1) % self.n_epochs == 0:
             return
         self.evaluate(*self.evaluation_args)
-        evaluation_dir = str(
-            Path(os.path.join('output', 'evaluation', f'epoch-{epoch}-evaluation'))
-            .absolute()
-            .resolve()
+        evaluation_dir = get_abs_path(
+            'output', 'evaluation', f'epoch-{epoch}-evaluation', create=True
         )
-        os.mkdir(evaluation_dir)
         current_predictions = [
-            str(Path(os.path.join('output', 'data', item)).absolute().resolve())
-            for item in os.listdir(os.path.join('output', 'data'))
+            get_abs_path('output', 'data', item)
+            for item in os.listdir(get_abs_path('output', 'data', verify=True))
         ]
         current_figures = [
-            str(Path(os.path.join('output', 'plots', item)).absolute().resolve())
-            for item in os.listdir(os.path.join('output', 'plots'))
+            get_abs_path('output', 'plots', item)
+            for item in os.listdir(get_abs_path('output', 'plots'))
         ]
         current_files = current_predictions + current_figures
         for file_path in current_files:
             if os.path.isfile(file_path):
                 file_name = os.path.basename(file_path)
-                new_path = os.path.join(evaluation_dir, file_name)
+                new_path = get_abs_path(evaluation_dir, file_name)
                 shutil.move(file_path, new_path)

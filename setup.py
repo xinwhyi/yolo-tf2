@@ -1,26 +1,10 @@
 from setuptools import setup, find_packages
 
-install_requires = [
-    'imagesize==1.2.0',
-    'numpy==1.18.5',
-    'pandas==1.1.3',
-    'seaborn==0.11.0',
-    'tensorflow==2.3.1',
-    'matplotlib==3.3.2',
-    'lxml==4.6.1',
-    'imgaug==0.4.0',
-    'tensorflow_addons==0.11.2',
-    'opencv_python_headless==4.4.0.44',
-    'imagecorruptions==1.1.0',
-    'configparser~=5.0.1',
-    'scipy==1.4.1',
-    'PyQt5==5.15.1',
-    'tabulate==0.8.7'
-]
+install_requires = [dep.strip() for dep in open('requirements.txt')]
 
 setup(
     name='yolo_tf2',
-    version='1.0',
+    version='1.4',
     packages=find_packages(),
     url='https://github.com/emadboctorx/yolov3-keras-tf2',
     license='MIT',

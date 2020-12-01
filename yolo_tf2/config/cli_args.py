@@ -6,7 +6,6 @@ GENERAL = {
         'help': 'Input shape ex: (416, 416, 3)',
         'default': (416, 416, 3),
         'type': ast.literal_eval,
-        'required': True,
     },
     'classes': {'help': 'Path to classes .txt file', 'required': True},
     'model-cfg': {'help': 'Yolo DarkNet configuration .cfg file', 'required': True},
@@ -31,23 +30,18 @@ GENERAL = {
         'default': 32,
         'type': int,
     },
-    'create-output-dirs': {
-        'help': 'If True, output folders will be created in the working directory',
-        'action': 'store_true',
-    },
 }
 
 TRAINING = {
     'weights': {'help': 'Path to trained weights .tf or .weights file'},
-    'image-width': {'help': 'Image actual width', 'type': int, 'required': True},
-    'image-height': {'help': 'Image actual height', 'type': int, 'required': True},
     'epochs': {'help': 'Number of training epochs', 'type': int, 'default': 100},
     'batch-size': {'help': 'Training batch size', 'type': int, 'default': 8},
     'learning-rate': {'help': 'Training learning rate', 'type': float, 'default': 1e-3},
-    'dataset-name': {'help': 'Name of the checkpoint'},
+    'dataset-name': {'help': 'Name of the checkpoint', 'required': True},
     'test-size': {
         'help': 'test dataset relative size (a value between 0 and 1)',
         'type': float,
+        'default': 0.1,
     },
     'evaluate': {
         'help': 'If True, evaluation will be conducted after training',
@@ -72,10 +66,7 @@ TRAINING = {
     'clear-output': {'help': 'If True, clear output folders', 'action': 'store_true'},
     'n-eval': {'help': 'Evaluate every n epochs', 'type': int},
     'relative-labels': {'help': 'Path to .csv file that contains'},
-    'from-xml': {
-        'help': 'Parse labels from XML files in data > xml_labels',
-        'action': 'store_true',
-    },
+    'voc-conf': {'help': 'VOC configuration .json file'},
     'augmentation-preset': {'help': 'name of augmentation preset'},
     'image-folder': {
         'help': 'Path to folder that contains images, defaults to data/photos',

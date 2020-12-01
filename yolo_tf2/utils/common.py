@@ -259,7 +259,7 @@ def add_xml_path(xml_file, path):
     folder_tag.text = path
     file_name_tag = tree.find('filename')
     path_tag = SubElement(top, 'path')
-    path_tag.text = os.path.join(folder_tag.text, file_name_tag.text)
+    path_tag.text = get_abs_path(folder_tag.text, file_name_tag.text)
     rough_string = ElementTree.tostring(top, 'utf8')
     root = etree.fromstring(rough_string)
     pretty = etree.tostring(root, pretty_print=True, encoding='utf-8').replace(
@@ -295,8 +295,8 @@ def get_detection_data(image, image_name, outputs, class_names):
     data['object_name'] = np.array(class_names)[classes.astype('int64')]
     data['image'] = image_name
     data['score'] = scores
-    data['image_width'] = w
-    data['image_height'] = h
+    data['img_width'] = w
+    data['img_height'] = h
     data = data[
         [
             'image',
@@ -306,8 +306,8 @@ def get_detection_data(image, image_name, outputs, class_names):
             'x2',
             'y2',
             'score',
-            'image_width',
-            'image_height',
+            'img_width',
+            'img_height',
         ]
     ]
     return data
@@ -380,9 +380,9 @@ def calculate_display_data(prediction_file, classes_file, img_width, img_height,
     fr = pd.DataFrame(
         rows,
         columns=[
-            'Image',
-            'Object Name',
-            'Object Index',
+            'image',
+            'object_name',
+            'object_index',
             'bx',
             'by',
             'bw',
@@ -410,19 +410,32 @@ class Mish(Layer):
         return input_shape
 
 
-def create_output_dirs():
-    """
-    Create output dirs in the working dir.
-    Returns:
-        None
-    """
-    dirs = [Path('data') / 'tfrecords']
-    dirs.extend([Path('models'), Path('yolo_logs')])
-    dirs.extend(
-        [
-            Path('output') / sub_folder
-            for sub_folder in ('data', 'detections', 'evaluation', 'plots')
-        ]
-    )
-    for dir_name in dirs:
-        os.makedirs(dir_name.as_posix(), exist_ok=True)
+def get_abs_path(
+    *args, verify=False, verify_parents=False, create_parents=False, create=False
+):
+    fp = Path(*args).absolute().resolve()
+    posix_path = fp.as_posix()
+    if create_parents:
+        os.makedirs(fp.parent.as_posix(), exist_ok=True)
+    if create:
+        os.makedirs(fp.as_posix(), exist_ok=True)
+    if verify:
+        assert fp.exists(), f'Path does not exist {posix_path}'
+    if verify_parents:
+        parent = fp.parent
+        assert parent.exists(), f'Folder not found {parent.as_posix()}'
+    return posix_path
+
+
+def get_image_files(folder_path):
+    folder_path = get_abs_path(folder_path, verify=True)
+    image_files = [
+        get_abs_path(folder_path, filename)
+        for filename in os.listdir(folder_path)
+        if Path(filename).suffix in ['.png', '.jpg', '.jpeg', '.bmp']
+    ]
+    if image_files:
+        return image_files
+    issue = f'No image files found in {folder_path}'
+    LOGGER.error(issue)
+    raise FileNotFoundError(issue)

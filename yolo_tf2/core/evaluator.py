@@ -5,6 +5,7 @@ from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
     transform_images,
     get_detection_data,
+    get_abs_path,
     LOGGER,
     timer,
 )
@@ -93,7 +94,7 @@ class Evaluator(BaseModel):
     def get_dataset_next(dataset):
         try:
             return next(dataset)
-        except tf.errors.UnknownError as e:  # sometimes encountered when reading from google drive
+        except tf.errors.UnknownError as e:
             LOGGER.error(f'Error occurred during reading from dataset\n{e}')
 
     def predict_dataset(self, dataset, workers=16, split='train', batch_size=64):
@@ -134,7 +135,8 @@ class Evaluator(BaseModel):
                     completed = f'{self.predicted}/{self.dataset_size}'
                     percent = (self.predicted / self.dataset_size) * 100
                     print(
-                        f'\rpredicting {completed_image} {completed}\t{percent}% completed',
+                        f'\rpredicting {completed_image} {completed}\t{percent}'
+                        f'% completed',
                         end='',
                     )
                     self.predicted += 1
@@ -154,7 +156,8 @@ class Evaluator(BaseModel):
         Make predictions on both training and validation data sets
             and save results as csv in output folder.
         Args:
-            trained_weights: Trained .tf weights or .weights file(in case self.classes = 80).
+            trained_weights: Trained .tf weights or .weights file
+                (in case self.classes = 80).
             merge: If True a single file will be saved for training
                 and validation sets predictions combined.
             workers: Parallel predictions.
@@ -166,7 +169,7 @@ class Evaluator(BaseModel):
                 or 2 pandas DataFrame(s) for training and validation
                 data sets respectively.
         """
-        self.create_models()
+        self.create_models(reverse_v4=True if trained_weights.endswith('tf') else False)
         self.load_weights(trained_weights)
         features = get_feature_map()
         train_dataset = read_tfr(
@@ -195,11 +198,17 @@ class Evaluator(BaseModel):
         )
         if merge:
             predictions = pd.concat([train_predictions, valid_predictions])
-            save_path = os.path.join('output', 'data', 'full_dataset_predictions.csv')
+            save_path = get_abs_path(
+                'output', 'data', 'full_dataset_predictions.csv', create_parents=True
+            )
             predictions.to_csv(save_path, index=False)
             return predictions
-        train_path = os.path.join('output', 'data', 'train_dataset_predictions.csv')
-        valid_path = os.path.join('output', 'data', 'valid_dataset_predictions.csv')
+        train_path = get_abs_path(
+            'output', 'data', 'train_dataset_predictions.csv', create_parents=True
+        )
+        valid_path = get_abs_path(
+            'output', 'data', 'valid_dataset_predictions.csv', create_parents=True
+        )
         train_predictions.to_csv(train_path, index=False)
         valid_predictions.to_csv(valid_path, index=False)
         return train_predictions, valid_predictions
@@ -244,9 +253,7 @@ class Evaluator(BaseModel):
                 f'{[item for item in self.class_names if item not in min_overlaps]} '
                 f'are missing in min_overlaps'
             )
-        actual = actual.rename(
-            columns={'Image Path': 'image', 'Object Name': 'object_name'}
-        )
+        actual = actual.rename(columns={'image_path': 'image'})
         actual['image'] = actual['image'].apply(lambda x: os.path.split(x)[-1])
         random_gen = np.random.default_rng()
         if 'detection_key' not in detections.columns:
@@ -258,15 +265,15 @@ class Evaluator(BaseModel):
         assert (
             not total_frame.empty
         ), 'No common image names found between actual and detections'
-        total_frame['x_max_common'] = total_frame[['X_max', 'x2']].min(1)
-        total_frame['x_min_common'] = total_frame[['X_min', 'x1']].max(1)
-        total_frame['y_max_common'] = total_frame[['Y_max', 'y2']].min(1)
-        total_frame['y_min_common'] = total_frame[['Y_min', 'y1']].max(1)
+        total_frame['x_max_common'] = total_frame[['x_max', 'x2']].min(1)
+        total_frame['x_min_common'] = total_frame[['x_min', 'x1']].max(1)
+        total_frame['y_max_common'] = total_frame[['y_max', 'y2']].min(1)
+        total_frame['y_min_common'] = total_frame[['y_min', 'y1']].max(1)
         true_intersect = (total_frame['x_max_common'] > total_frame['x_min_common']) & (
             total_frame['y_max_common'] > total_frame['y_min_common']
         )
         total_frame = total_frame[true_intersect]
-        actual_areas = self.get_area(total_frame, ['X_min', 'Y_min', 'X_max', 'Y_max'])
+        actual_areas = self.get_area(total_frame, ['x_min', 'y_min', 'x_max', 'y_max'])
         predicted_areas = self.get_area(total_frame, ['x1', 'y1', 'x2', 'y2'])
         intersect_areas = self.get_area(
             total_frame,
@@ -274,6 +281,9 @@ class Evaluator(BaseModel):
         )
         iou_areas = intersect_areas / (actual_areas + predicted_areas - intersect_areas)
         total_frame['iou'] = iou_areas
+        total_frame = total_frame.drop(['img_width_x', 'img_height_x'], axis=1).rename(
+            {'img_width_y': 'img_width', 'img_height_y': 'img_height'}, axis=1
+        )
         if isinstance(min_overlaps, float):
             return total_frame[total_frame['iou'] >= min_overlaps]
         if isinstance(min_overlaps, dict):
@@ -325,13 +335,13 @@ class Evaluator(BaseModel):
                 'image',
                 'object_name',
                 'score',
+                'img_width',
+                'img_height',
                 'x_min_common',
                 'y_min_common',
                 'x_max_common',
                 'y_max_common',
                 'iou',
-                'image_width',
-                'image_height',
                 'true_positive',
                 'false_positive',
                 'detection_key',
@@ -358,8 +368,8 @@ class Evaluator(BaseModel):
                 'x2',
                 'y2',
                 'iou',
-                'image_width',
-                'image_height',
+                'img_width',
+                'img_height',
                 'true_positive',
                 'false_positive',
                 'detection_key',
@@ -397,7 +407,7 @@ class Evaluator(BaseModel):
                 ].sum()
                 * 100
             )
-            stats['Actual'] = len(actual_data[actual_data["Object Name"] == class_name])
+            stats['Actual'] = len(actual_data[actual_data["object_name"] == class_name])
             stats['detections'] = len(
                 detection_data[detection_data["object_name"] == class_name]
             )
@@ -470,10 +480,10 @@ class Evaluator(BaseModel):
         Returns:
             pandas DataFrame with statistics, mAP score.
         """
-        actual_data['Object Name'] = actual_data['Object Name'].apply(
+        actual_data['object_name'] = actual_data['object_name'].apply(
             lambda x: x.replace("b'", '').replace("'", '')
         )
-        class_counts = actual_data['Object Name'].value_counts().to_dict()
+        class_counts = actual_data['object_name'].value_counts().to_dict()
         true_positives = self.get_true_positives(
             prediction_data, actual_data, min_overlaps
         )
@@ -495,17 +505,10 @@ class Evaluator(BaseModel):
         )
         map_score = stats['Average Precision'].mean()
         if display_stats:
-            pd.set_option(
-                'display.max_rows',
-                None,
-                'display.max_columns',
-                None,
-                'display.width',
-                None,
-            )
+            pd.set_option('expand_frame_repr', False)
             print(stats.sort_values(by='Average Precision', ascending=False))
             print(f'mAP score: {map_score}%')
-            pd.reset_option('display.[max_rows, max_columns, width]')
+            pd.set_option('expand_frame_repr', True)
         if plot_results:
             visualize_pr(calculated, save_figs, fig_prefix)
             visualize_evaluation_stats(stats, fig_prefix)

@@ -1,4 +1,4 @@
-from yolo_tf2.utils.common import LOGGER
+from yolo_tf2.utils.common import LOGGER, get_abs_path
 from pathlib import Path
 import tensorflow as tf
 import pandas as pd
@@ -15,8 +15,8 @@ def get_feature_map():
         features
     """
     features = {
-        'image_width': tf.io.FixedLenFeature([], tf.int64),
-        'image_height': tf.io.FixedLenFeature([], tf.int64),
+        'img_width': tf.io.FixedLenFeature([], tf.int64),
+        'img_height': tf.io.FixedLenFeature([], tf.int64),
         'image_path': tf.io.FixedLenFeature([], tf.string),
         'image_file': tf.io.FixedLenFeature([], tf.string),
         'image_key': tf.io.FixedLenFeature([], tf.string),
@@ -59,10 +59,10 @@ def create_example(separate_data, key, image_data):
     image_file_name = os.path.split(image[0])[-1]
     image_format = image_file_name.split('.')[-1]
     features = {
-        'image_height': tf.train.Feature(
+        'img_height': tf.train.Feature(
             int64_list=tf.train.Int64List(value=[image_height[0]])
         ),
-        'image_width': tf.train.Feature(
+        'img_width': tf.train.Feature(
             int64_list=tf.train.Int64List(value=[image_width[0]])
         ),
         'image_path': tf.train.Feature(
@@ -173,13 +173,10 @@ def write_tf_record(output_path, groups, data, trainer=None):
             x_max /= image_width
             y_min /= image_height
             y_max /= image_height
-            try:
-                image_data = open(image_path, 'rb').read()
-                key = hashlib.sha256(image_data).hexdigest()
-                training_example = create_example(separate_data, key, image_data)
-                r_writer.write(training_example.SerializeToString())
-            except Exception as e:
-                LOGGER.error(e)
+            image_data = open(image_path, 'rb').read()
+            key = hashlib.sha256(image_data).hexdigest()
+            training_example = create_example(separate_data, key, image_data)
+            r_writer.write(training_example.SerializeToString())
     print()
 
 
@@ -199,13 +196,16 @@ def save_tfr(data, output_folder, dataset_name, test_size, trainer=None):
     assert (
         0 < test_size < 1
     ), f'test_size must be 0 < test_size < 1 and {test_size} is given'
-    data['Object Name'] = data['Object Name'].apply(lambda x: x.encode('utf-8'))
-    data['Object ID'] = data['Object ID'].astype(int)
+    data['object_name'] = data['object_name'].apply(lambda x: x.encode('utf-8'))
+    data['object_id'] = data['object_id'].astype(int)
     data[data.dtypes[data.dtypes == 'int64'].index] = data[
         data.dtypes[data.dtypes == 'int64'].index
     ].apply(abs)
-    data.to_csv(os.path.join('data', 'tfrecords', 'full_data.csv'), index=False)
-    groups = np.array(data.groupby('Image Path'))
+    data.to_csv(
+        get_abs_path('data', 'tfrecords', 'full_data.csv', create_parents=True),
+        index=False,
+    )
+    groups = np.array(data.groupby('image_path'))
     np.random.shuffle(groups)
     separation_index = int((1 - test_size) * len(groups))
     training_set = groups[:separation_index]
@@ -213,23 +213,15 @@ def save_tfr(data, output_folder, dataset_name, test_size, trainer=None):
     training_frame = pd.concat([item[1] for item in training_set])
     test_frame = pd.concat([item[1] for item in test_set])
     training_frame.to_csv(
-        os.path.join('data', 'tfrecords', 'training_data.csv'),
+        get_abs_path('data', 'tfrecords', 'training_data.csv', create_parents=True),
         index=False,
     )
     test_frame.to_csv(
-        os.path.join('data', 'tfrecords', 'test_data.csv'),
+        get_abs_path('data', 'tfrecords', 'test_data.csv', create_parents=True),
         index=False,
     )
-    training_path = str(
-        Path(os.path.join(output_folder, f'{dataset_name}_train.tfrecord'))
-        .absolute()
-        .resolve()
-    )
-    test_path = str(
-        Path(os.path.join(output_folder, f'{dataset_name}_test.tfrecord'))
-        .absolute()
-        .resolve()
-    )
+    training_path = get_abs_path(output_folder, f'{dataset_name}_train.tfrecord')
+    test_path = get_abs_path(output_folder, f'{dataset_name}_test.tfrecord')
     write_tf_record(training_path, training_set, data, trainer)
     LOGGER.info(f'Saved training TFRecord: {training_path}')
     write_tf_record(test_path, test_set, data, trainer)
@@ -259,7 +251,7 @@ def read_tfr(
     Returns:
         MapDataset object.
     """
-    tf_record_file = str(Path(tf_record_file).absolute().resolve())
+    tf_record_file = str(Path(tf_record_file).absolute().resolve().as_posix())
     text_init = tf.lookup.TextFileInitializer(
         classes_file, tf.string, 0, tf.int64, -1, delimiter=classes_delimiter
     )

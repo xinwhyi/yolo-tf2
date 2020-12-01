@@ -1,25 +1,25 @@
 {
-    "Tree": {
-        "Tree Tag": "annotation",
-        "Folder": "folder",
-        "Filename": "filename",
-        "Path": "path"
+    "tree": {
+        "tree_tag": "annotation",
+        "folder": "folder",
+        "filename": "filename",
+        "path": "path"
     },
-    "Size": {
-        "Size Tag": "size",
-        "Width": "width",
-        "Height": "height",
-        "Depth": "depth"
+    "size": {
+        "size_tag": "size",
+        "width": "width",
+        "height": "height",
+        "depth": "depth"
     },
-    "Object": {
-        "Object Tag": "object",
-        "Object Name": "name",
-        "Object Box": {
-            "Object Box Tag": "bndbox",
-            "X0": "xmin",
-            "Y0": "ymin",
-            "X1": "xmax",
-            "Y1": "ymax"
+    "object": {
+        "object_tag": "object",
+        "object_name": "name",
+        "object_box": {
+            "object_box_tag": "bndbox",
+            "x0": "xmin",
+            "y0": "ymin",
+            "x1": "xmax",
+            "y1": "ymax"
         }
     }
 }

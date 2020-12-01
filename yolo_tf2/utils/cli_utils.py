@@ -1,4 +1,5 @@
 from yolo_tf2.config.augmentation_options import AUGMENTATION_PRESETS
+from yolo_tf2.utils.common import get_abs_path, get_image_files
 from yolo_tf2.core.evaluator import Evaluator
 from yolo_tf2.core.detector import Detector
 from yolo_tf2.core.trainer import Trainer
@@ -10,24 +11,23 @@ from yolo_tf2.config.cli_args import (
 )
 import pandas as pd
 import yolo_tf2
-import os
 
 
-def display_section(section, name):
+def display_section(name):
     """
     Display a dictionary of command line options
     Args:
-        section: One of [GENERAL, TRAINING, EVALUATION, DETECTION]
-        name: section name
+        name: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
 
     Returns:
         None
     """
-    section_frame = pd.DataFrame(section).T.fillna('-')
-    section_frame['commands'] = section_frame.index.values
-    section_frame['commands'] = section_frame['commands'].apply(lambda c: f'--{c}')
-    section_frame = section_frame.reset_index(drop=True).set_index('commands')
-    print(f'\n{name}\n')
+    assert all((GENERAL, TRAINING, DETECTION, EVALUATION))
+    section_frame = pd.DataFrame(eval(name)).T.fillna('-')
+    section_frame['flags'] = section_frame.index.values
+    section_frame['flags'] = section_frame['flags'].apply(lambda c: f'--{c}')
+    section_frame = section_frame.reset_index(drop=True).set_index('flags')
+    print(f'\n{name.title()}\n')
     print(
         section_frame[
             [
@@ -62,11 +62,8 @@ def display_commands(display_all=False):
     print('Use yolotf2 <command> -h to see more info about a command', end='\n\n')
     print('Use yolotf2 -h to display all command line options')
     if display_all:
-        for section, name in zip(
-            (GENERAL, TRAINING, EVALUATION, DETECTION),
-            ('General', 'Training', 'Evaluation', 'Detection'),
-        ):
-            display_section(section, name)
+        for name in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
+            display_section(name)
 
 
 def add_args(process_args, parser):
@@ -109,7 +106,7 @@ def add_all_args(parser, process_args, *args):
     """
     parser = add_args(process_args, parser)
     cli_args = parser.parse_args()
-    for arg in ['input_shape', 'model_cfg', 'classes', *args]:
+    for arg in ['model_cfg', 'classes', *args]:
         assert eval(f'cli_args.{arg}'), f'{arg} is required'
     return cli_args
 
@@ -123,16 +120,11 @@ def train(parser):
     Returns:
         None
     """
-    required_args = ('image_width', 'image_height')
-    cli_args = add_all_args(parser, TRAINING, *required_args)
+    cli_args = add_all_args(parser, TRAINING)
     if not cli_args.train_tfrecord and not cli_args.valid_tfrecord:
-        assert cli_args.dataset_name and cli_args.test_size, (
-            f'--dataset-name and --test-size are required or specify '
-            f'--train-tfrecord and --valid-tfrecord'
-        )
         assert (
-            cli_args.relative_labels or cli_args.from_xml
-        ), 'No labels provided: specify --relative-labels or --from-xml'
+            cli_args.relative_labels or cli_args.xml_labels_folder
+        ), 'No labels provided: specify --relative-labels or --xml-labels-folder'
     if cli_args.augmentation_preset:
         assert (
             preset := cli_args.augmentation_preset
@@ -141,15 +133,12 @@ def train(parser):
         input_shape=cli_args.input_shape,
         model_configuration=cli_args.model_cfg,
         classes_file=cli_args.classes,
-        image_width=cli_args.image_width,
-        image_height=cli_args.image_height,
         train_tf_record=cli_args.train_tfrecord,
         valid_tf_record=cli_args.valid_tfrecord,
         max_boxes=cli_args.max_boxes,
         iou_threshold=cli_args.iou_threshold,
         score_threshold=cli_args.score_threshold,
         image_folder=cli_args.image_folder,
-        xml_labels_folder=cli_args.xml_labels_folder,
     )
     trainer.train(
         epochs=cli_args.epochs,
@@ -159,7 +148,7 @@ def train(parser):
             'dataset_name': (d_name := cli_args.dataset_name),
             'relative_labels': cli_args.relative_labels,
             'test_size': cli_args.test_size,
-            'from_xml': cli_args.from_xml,
+            'voc_conf': cli_args.voc_conf,
             'augmentation': bool((preset := cli_args.augmentation_preset)),
             'sequences': AUGMENTATION_PRESETS.get(preset),
             'aug_workers': cli_args.workers,
@@ -177,7 +166,6 @@ def train(parser):
         save_figs=cli_args.save_figs,
         clear_outputs=cli_args.clear_output,
         n_epoch_eval=cli_args.n_eval,
-        create_dirs=cli_args.create_output_dirs,
     )
 
 
@@ -242,15 +230,18 @@ def detect(parser):
     ]
     assert (
         len(check_args) == 1
-    ), 'Expected --image or --image-dir or --vidoe, got more than one'
+    ), 'Expected --image or --image-dir or --video, got more than one'
     target_photos = []
     if cli_args.image:
-        target_photos.append(cli_args.image)
+        target_photos.append(get_abs_path(cli_args.image))
     if cli_args.image_dir:
-        target_photos.extend(os.listdir(cli_args.image_dir))
+        target_photos.extend(
+            get_abs_path(cli_args.image_dir, image)
+            for image in get_image_files(cli_args.image_dir)
+        )
     if cli_args.image or cli_args.image_dir:
         detector.predict_photos(
-            photos=[target_photos],
+            photos=target_photos,
             trained_weights=cli_args.weights,
             batch_size=cli_args.process_batch_size,
             workers=cli_args.workers,
@@ -258,8 +249,8 @@ def detect(parser):
         )
     if cli_args.video:
         detector.detect_video(
-            video=cli_args.video,
-            trained_weights=cli_args.weights,
+            video=get_abs_path(cli_args.video, verify=True),
+            trained_weights=get_abs_path(cli_args.weights, verify=True),
             codec=cli_args.codec,
             display=cli_args.display_vid,
             output_dir=cli_args.output_dir,

@@ -1,6 +1,5 @@
-from yolo_tf2.utils.common import LOGGER
+from yolo_tf2.utils.common import LOGGER, get_abs_path
 import matplotlib.pyplot as plt
-from pathlib import Path
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -24,8 +23,8 @@ def save_fig(title, save_figures=True):
         None
     """
     if save_figures:
-        saving_path = str(
-            Path(os.path.join('output', 'plots', f'{title}.png')).absolute().resolve()
+        saving_path = get_abs_path(
+            'output', 'plots', f'{title}.png', create_parents=True
         )
         if os.path.exists(saving_path):
             return
@@ -45,14 +44,14 @@ def visualize_box_relative_sizes(frame, save_result=True):
         None
     """
     title = f'Relative width and height for {frame.shape[0]} boxes.'
-    if os.path.exists(os.path.join('output', 'plots', f'{title}.png')) or (
+    if os.path.exists(get_abs_path('output', 'plots', f'{title}.png')) or (
         frame is None
     ):
         return
     sns.scatterplot(
-        x=frame['Relative Width'],
-        y=frame['Relative Height'],
-        hue=frame['Object Name'],
+        x=frame['relative_width'],
+        y=frame['relative_height'],
+        hue=frame['object_name'],
         palette='gist_rainbow',
     )
     plt.title(title)
@@ -71,7 +70,7 @@ def visualize_k_means_output(centroids, frame, save_result=True):
         None
     """
     title = f'{centroids.shape[0]} Centroids representing relative anchor sizes.'
-    if os.path.exists(os.path.join('output', 'plots', f'{title}.png')) or (
+    if os.path.exists(get_abs_path('output', 'plots', f'{title}.png')) or (
         frame is None
     ):
         return
@@ -82,7 +81,7 @@ def visualize_k_means_output(centroids, frame, save_result=True):
     save_fig(title, save_result)
 
 
-def visualize_boxes(relative_anchors, sample_image, save_result=True):
+def visualize_boxes(relative_anchors, sample_image=None, save_result=True):
     """
     Visualize anchor boxes output of k-means.
     Args:
@@ -94,9 +93,11 @@ def visualize_boxes(relative_anchors, sample_image, save_result=True):
         None
     """
     title = 'Generated anchors relative to sample image size'
-    if os.path.exists(os.path.join('output', 'plots', f'{title}.png')):
+    if os.path.exists(get_abs_path('output', 'plots', f'{title}.png')):
         return
-    img = cv2.imread(sample_image)
+    img = cv2.imread(get_abs_path(sample_image))
+    if img is None:
+        img = np.ones * 255
     width, height = imagesize.get(sample_image)
     center = int(width / 2), int(height / 2)
     for relative_w, relative_h in relative_anchors:
@@ -223,7 +224,7 @@ def visualization_wrapper(to_visualize):
                 return result
             visualize_k_means_output(*result)
             plt.show()
-            visualize_boxes(result[0], os.path.join('samples', 'sample_image.png'))
+            visualize_boxes(result[0], get_abs_path('samples', 'sample_image.png'))
             plt.show()
         return result
 

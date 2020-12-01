@@ -1,4 +1,4 @@
-from yolo_tf2.utils.common import get_boxes, timer, LOGGER, Mish
+from yolo_tf2.utils.common import get_boxes, timer, LOGGER, Mish, get_abs_path
 from tensorflow.keras.layers import (
     ZeroPadding2D,
     BatchNormalization,
@@ -14,6 +14,7 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.regularizers import l2
 from collections import defaultdict
 from tensorflow.keras import Model
+from pathlib import Path
 import tensorflow as tf
 import configparser
 import numpy as np
@@ -141,7 +142,7 @@ class BaseModel:
         self.max_boxes = max_boxes
         self.iou_threshold = iou_threshold
         self.score_threshold = score_threshold
-        self.model_configuration = model_configuration
+        self.model_configuration = get_abs_path(model_configuration, verify=True)
         self.model_layers = []
 
     def apply_func(self, func, x=None, *args, **kwargs):
@@ -406,7 +407,7 @@ class BaseModel:
             self.create_output_layer()
 
     @timer(LOGGER)
-    def create_models(self):
+    def create_models(self, reverse_v4=False):
         """
         Create training and inference yolo models.
 
@@ -424,7 +425,7 @@ class BaseModel:
         if len(self.output_indices) == 0:
             self.output_indices.append(len(self.model_layers) - 1)
         self.output_layers.extend([self.model_layers[i] for i in self.output_indices])
-        if '4' in self.model_configuration:
+        if '4' in self.model_configuration and reverse_v4:
             self.output_layers.reverse()
         self.training_model = Model(inputs=input_initial, outputs=self.output_layers)
         output_0, output_1, output_2 = self.output_layers
@@ -462,18 +463,18 @@ class BaseModel:
         Returns:
             None
         """
-        assert weights_file.split('.')[-1] in [
-            'tf',
-            'weights',
+        assert (suffix := Path(weights_file).suffix) in [
+            '.tf',
+            '.weights',
         ], 'Invalid weights file'
         assert (
-            self.classes == 80 if weights_file.endswith('.weights') else 1
+            self.classes == 80 if suffix == '.weights' else 1
         ), f'DarkNet model should contain 80 classes, {self.classes} is given.'
-        if weights_file.endswith('.tf'):
-            self.training_model.load_weights(weights_file)
+        if suffix == '.tf':
+            self.training_model.load_weights(get_abs_path(weights_file))
             LOGGER.info(f'Loaded weights: {weights_file} ... success')
             return
-        with open(weights_file, 'rb') as weights_data:
+        with open(get_abs_path(weights_file, verify=True), 'rb') as weights_data:
             LOGGER.info(f'Loading pre-trained weights ...')
             major, minor, revision, seen, _ = np.fromfile(
                 weights_data, dtype=np.int32, count=5
@@ -489,10 +490,11 @@ class BaseModel:
                 current_read = weights_data.tell()
                 total_size = os.fstat(weights_data.fileno()).st_size
                 if current_read == total_size:
+                    print()
                     break
                 print(
-                    f'\r{round(100 * (current_read / total_size))}%\
-                    t{current_read}/{total_size}',
+                    f'\r{round(100 * (current_read / total_size))}'
+                    f'%\t{current_read}/{total_size}',
                     end='',
                 )
                 if 'conv2d' not in layer.name:
@@ -540,5 +542,4 @@ class BaseModel:
                     layer.set_weights([convolution_weights])
                     b_norm_layer.set_weights(bn_weights)
             assert len(weights_data.read()) == 0, 'failed to read all data'
-        LOGGER.info(f'Loaded weights: {weights_file} ... success')
-        print()
+        LOGGER.info(f'\nLoaded weights: {weights_file} ... success')

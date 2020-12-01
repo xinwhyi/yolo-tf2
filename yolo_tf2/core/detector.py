@@ -3,11 +3,11 @@ from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
     get_detection_data,
     activate_gpu,
+    get_abs_path,
     transform_images,
     LOGGER,
     timer,
 )
-from pathlib import Path
 import tensorflow as tf
 import numpy as np
 import cv2
@@ -114,24 +114,32 @@ class Detector(BaseModel):
                 1,
             )
 
-    def predict_on_image(self, image_path, output_path=None):
+    def predict_on_image(self, image_path, output_dir=None):
         """
         Detect, draw detections and save result to output folder.
         Args:
             image_path: Path to image.
-            output_path: Path to output image, defaults to output/detections/image_name
+            output_dir: Path to output dir, defaults to output/detections
 
         Returns:
-            None
+            Output path.
         """
+        image_path = get_abs_path(image_path, verify=True)
         image_name = os.path.basename(image_path)
         image_data = tf.image.decode_image(open(image_path, 'rb').read(), channels=3)
         detections, adjusted = self.detect_image(image_data, image_name)
         self.draw_on_image(adjusted, detections)
-        saving_path = output_path or os.path.join(
-            'output', 'detections', f'predicted-{image_name}'
-        )
-        cv2.imwrite(saving_path, adjusted)
+        if output_dir:
+            output_path = get_abs_path(
+                output_dir, f'predicted-{image_name}', create_parents=True
+            )
+        else:
+            output_dir = get_abs_path('output', 'detections')
+            output_path = get_abs_path(
+                output_dir, f'predicted-{image_name}', create_parents=True
+            )
+        cv2.imwrite(output_path, adjusted)
+        return output_path
 
     @timer(LOGGER)
     def predict_photos(
@@ -149,29 +157,30 @@ class Detector(BaseModel):
         Returns:
             None
         """
-        self.create_models()
-        self.load_weights(trained_weights)
+        self.create_models(reverse_v4=True if trained_weights.endswith('tf') else False)
+        self.load_weights(get_abs_path(trained_weights, verify=True))
         to_predict = photos.copy()
+        saved_paths = set()
         with ThreadPoolExecutor(max_workers=workers) as executor:
             predicted = 1
-            done = []
             total_photos = len(photos)
             while to_predict:
                 current_batch = [
-                    to_predict.pop() for _ in range(batch_size) if to_predict
+                    to_predict.pop()
+                    for _ in range(min(batch_size, len(to_predict)))
+                    if to_predict
                 ]
                 future_predictions = {
                     executor.submit(
                         self.predict_on_image,
                         image,
-                        Path(output_dir, image).absolute().resolve()
-                        if output_dir
-                        else None,
+                        output_dir,
                     ): image
                     for image in current_batch
                 }
                 for future_prediction in as_completed(future_predictions):
-                    future_prediction.result()
+                    saved_path = future_prediction.result()
+                    saved_paths.add(saved_path)
                     completed = f'{predicted}/{total_photos}'
                     current_image = future_predictions[future_prediction]
                     percent = (predicted / total_photos) * 100
@@ -181,9 +190,9 @@ class Detector(BaseModel):
                         end='',
                     )
                     predicted += 1
-                    done.append(current_image)
-            for item in done:
-                LOGGER.info(f'Saved prediction: {item}')
+        print()
+        for saved_path in saved_paths:
+            LOGGER.info(f'Saved prediction: {saved_path}')
 
     @timer(LOGGER)
     def detect_video(
@@ -202,7 +211,7 @@ class Detector(BaseModel):
         Returns:
             None
         """
-        self.create_models()
+        self.create_models(reverse_v4=True if trained_weights.endswith('tf') else False)
         self.load_weights(trained_weights)
         vid = cv2.VideoCapture(video)
         length = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -212,9 +221,11 @@ class Detector(BaseModel):
         current = 1
         codec = cv2.VideoWriter_fourcc(*codec)
         out = (
-            Path(output_dir, 'predicted_vid.mp4').absolute().resolve()
+            get_abs_path(output_dir, 'predicted_vid.mp4', create_parents=True)
             if output_dir
-            else (os.path.join('output', 'detections', 'predicted_vid.mp4'))
+            else get_abs_path(
+                'output', 'detections', 'predicted_vid.mp4', create_parents=True
+            )
         )
         writer = cv2.VideoWriter(out, codec, fps, (width, height))
         while vid.isOpened():
@@ -229,11 +240,11 @@ class Detector(BaseModel):
                 end='',
             )
             if display:
+                cv2.destroyAllWindows()
                 cv2.imshow(f'frame {current}', adjusted)
             current += 1
             if cv2.waitKey(1) == ord('q'):
                 LOGGER.info(
-                    f'Video detection stopped by user {current}/{length} '
-                    f'frames completed'
+                    f'Video detection aborted {current}/{length} ' f'frames completed'
                 )
                 break
