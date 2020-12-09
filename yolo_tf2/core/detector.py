@@ -1,17 +1,19 @@
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import cv2
+import numpy as np
+import tensorflow as tf
+
 from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
-    get_detection_data,
+    LOGGER,
     activate_gpu,
     get_abs_path,
-    transform_images,
-    LOGGER,
+    get_detection_data,
     timer,
+    transform_images,
 )
-import tensorflow as tf
-import numpy as np
-import cv2
-import os
 
 
 class Detector(BaseModel):

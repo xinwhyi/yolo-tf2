@@ -1,6 +1,5 @@
 import ast
 
-
 GENERAL = {
     'input-shape': {
         'help': 'Input shape ex: (416, 416, 3)',

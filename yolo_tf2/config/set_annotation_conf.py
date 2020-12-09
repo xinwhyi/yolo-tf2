@@ -1,6 +1,7 @@
-from yolo_tf2.utils.common import get_abs_path
 import json
 import os
+
+from yolo_tf2.utils.common import get_abs_path
 
 
 def set_voc_tags(

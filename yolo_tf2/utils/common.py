@@ -1,22 +1,20 @@
-from tensorflow.python.util.tf_export import keras_export
-from tensorflow.python.keras.utils import tf_utils
-from xml.etree.ElementTree import SubElement
-from tensorflow.keras.layers import Layer
-import tensorflow as tf
-from tensorflow.keras.losses import (
-    sparse_categorical_crossentropy,
-    binary_crossentropy,
-)
-from xml.etree import ElementTree
-import tensorflow_addons as tfa
-from time import perf_counter
-from logging import handlers
-from pathlib import Path
-from lxml import etree
-import pandas as pd
-import numpy as np
 import logging
 import os
+from logging import handlers
+from pathlib import Path
+from time import perf_counter
+from xml.etree import ElementTree
+from xml.etree.ElementTree import SubElement
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import tensorflow_addons as tfa
+from lxml import etree
+from tensorflow.keras.layers import Layer
+from tensorflow.keras.losses import binary_crossentropy, sparse_categorical_crossentropy
+from tensorflow.python.keras.utils import tf_utils
+from tensorflow.python.util.tf_export import keras_export
 
 tfa.options.TF_ADDONS_PY_OPS = True
 

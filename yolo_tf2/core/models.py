@@ -1,25 +1,27 @@
-from yolo_tf2.utils.common import get_boxes, timer, LOGGER, Mish, get_abs_path
+import configparser
+import io
+import os
+from collections import defaultdict
+from pathlib import Path
+
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras import Model
 from tensorflow.keras.layers import (
-    ZeroPadding2D,
-    BatchNormalization,
-    LeakyReLU,
-    Conv2D,
     Add,
-    Input,
-    UpSampling2D,
+    BatchNormalization,
     Concatenate,
+    Conv2D,
+    Input,
     Lambda,
+    LeakyReLU,
     MaxPooling2D,
+    UpSampling2D,
+    ZeroPadding2D,
 )
 from tensorflow.keras.regularizers import l2
-from collections import defaultdict
-from tensorflow.keras import Model
-from pathlib import Path
-import tensorflow as tf
-import configparser
-import numpy as np
-import os
-import io
+
+from yolo_tf2.utils.common import LOGGER, Mish, get_abs_path, get_boxes, timer
 
 
 class BaseModel:

@@ -1,11 +1,12 @@
-from yolo_tf2.utils.common import ratios_to_coordinates, LOGGER
-from yolo_tf2.utils.visual_tools import visualization_wrapper
-from yolo_tf2.utils.common import get_abs_path
-from xml.etree import ElementTree
-import pandas as pd
-import numpy as np
 import json
 import os
+from xml.etree import ElementTree
+
+import numpy as np
+import pandas as pd
+
+from yolo_tf2.utils.common import LOGGER, get_abs_path, ratios_to_coordinates
+from yolo_tf2.utils.visual_tools import visualization_wrapper
 
 
 def get_tree_item(parent, tag, file_path, find_all=False):

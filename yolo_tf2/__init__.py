@@ -1,5 +1,6 @@
-from yolo_tf2 import config, core, utils
 import sys
+
+from yolo_tf2 import config, core, utils
 
 __author__ = 'Emad Boctor'
 __email__ = 'emad_1989@hotmail.com'

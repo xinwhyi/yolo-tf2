@@ -1,21 +1,23 @@
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import cv2
+import imagesize
+import imgaug as ia
+import numpy as np
+import pandas as pd
+from imgaug import augmenters as iaa
+from imgaug import parameters as iap
+from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+
+from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
 from yolo_tf2.utils.common import (
-    ratios_to_coordinates,
-    timer,
     LOGGER,
     get_abs_path,
     get_image_files,
+    ratios_to_coordinates,
+    timer,
 )
-from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
-from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from imgaug import augmenters as iaa
-from imgaug import parameters as iap
-import pandas as pd
-import imgaug as ia
-import numpy as np
-import imagesize
-import cv2
-import os
 
 
 class DataAugment:

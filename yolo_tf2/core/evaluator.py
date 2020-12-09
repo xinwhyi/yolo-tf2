@@ -1,19 +1,21 @@
-from yolo_tf2.utils.visual_tools import visualize_pr, visualize_evaluation_stats
-from yolo_tf2.utils.dataset_handlers import read_tfr, get_feature_map
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import cv2
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+
 from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
-    transform_images,
-    get_detection_data,
-    get_abs_path,
     LOGGER,
+    get_abs_path,
+    get_detection_data,
     timer,
+    transform_images,
 )
-import tensorflow as tf
-import pandas as pd
-import numpy as np
-import cv2
-import os
+from yolo_tf2.utils.dataset_handlers import get_feature_map, read_tfr
+from yolo_tf2.utils.visual_tools import visualize_evaluation_stats, visualize_pr
 
 
 class Evaluator(BaseModel):

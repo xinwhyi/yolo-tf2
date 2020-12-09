@@ -9,7 +9,7 @@ lxml==4.6.2
 imgaug==0.4.0
 tensorflow-addons==0.11.2
 opencv-python-headless==4.4.0.46
-imagecorruptions==1.1.1
+imagecorruptions==1.1.2
 configparser~=5.0.1
 scipy==1.5.4
 PyQt5==5.15.2

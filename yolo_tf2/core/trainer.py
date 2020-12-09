@@ -1,36 +1,35 @@
-from yolo_tf2.utils.common import (
-    transform_images,
-    transform_targets,
-    get_abs_path,
+import os
+import shutil
+
+import imagesize
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tensorflow.keras.callbacks import (
+    Callback,
+    EarlyStopping,
+    ModelCheckpoint,
+    ReduceLROnPlateau,
+    TensorBoard,
 )
-from yolo_tf2.utils.common import (
-    calculate_loss,
-    timer,
-    LOGGER,
-    activate_gpu,
-    get_image_files,
-)
-from yolo_tf2.utils.dataset_handlers import read_tfr, save_tfr, get_feature_map
-from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
-from yolo_tf2.utils.annotation_parsers import parse_voc_folder
+
 from yolo_tf2.config.augmentation_options import AUGMENTATIONS
-from yolo_tf2.utils.anchors import k_means, generate_anchors
 from yolo_tf2.core.augmentor import DataAugment
 from yolo_tf2.core.evaluator import Evaluator
 from yolo_tf2.core.models import BaseModel
-from tensorflow.keras.callbacks import (
-    ReduceLROnPlateau,
-    TensorBoard,
-    ModelCheckpoint,
-    Callback,
-    EarlyStopping,
+from yolo_tf2.utils.anchors import generate_anchors, k_means
+from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv, parse_voc_folder
+from yolo_tf2.utils.common import (
+    LOGGER,
+    activate_gpu,
+    calculate_loss,
+    get_abs_path,
+    get_image_files,
+    timer,
+    transform_images,
+    transform_targets,
 )
-import tensorflow as tf
-import pandas as pd
-import numpy as np
-import imagesize
-import shutil
-import os
+from yolo_tf2.utils.dataset_handlers import get_feature_map, read_tfr, save_tfr
 
 
 class Trainer(BaseModel):
