@@ -45,7 +45,7 @@ def get_logger(log_file=None):
 LOGGER = get_logger()
 
 
-def timer(logger):
+def timer(func, logger=None):
     """
     Timer wrapper.
     logger: logging.RootLogger object
@@ -54,19 +54,18 @@ def timer(logger):
         timed
     """
 
-    def timed(func):
-        def wrapper(*args, **kwargs):
-            start_time = perf_counter()
-            result = func(*args, **kwargs)
-            total_time = perf_counter() - start_time
-            if logger is not None:
-                logger.info(f'{func.__name__} execution time: ' f'{total_time} seconds')
-            if result is not None:
-                return result
+    def decorator(*args, **kwargs):
+        start_time = perf_counter()
+        result = func(*args, **kwargs)
+        total_time = perf_counter() - start_time
+        message = f'{func.__name__} execution time: ' f'{total_time} seconds'
+        if logger is not None:
+            logger.info(message)
+        else:
+            print(message)
+        return result
 
-        return wrapper
-
-    return timed
+    return decorator
 
 
 def ratios_to_coordinates(bx, by, bw, bh, width, height):
