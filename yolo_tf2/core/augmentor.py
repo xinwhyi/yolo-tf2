@@ -286,7 +286,10 @@ class DataAugment:
         Returns:
             None
         """
-        frame_after = pd.DataFrame(bbs_aug.bounding_boxes, columns=['x1y1', 'x2y2'])
+        frame_after = pd.DataFrame(
+            bbs_aug.remove_out_of_image().clip_out_of_image().bounding_boxes,
+            columns=['x1y1', 'x2y2'],
+        )
         if (
             frame_after.empty
         ):  # some post-augmentation photos do not contain bounding boxes

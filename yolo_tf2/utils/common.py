@@ -214,7 +214,7 @@ def calculate_loss(anchors, classes=80, ignore_thresh=0.5):
                 axis=-1,
             ),
             (pred_box, true_box, obj_mask),
-            tf.float32,
+            fn_output_signature=tf.float32,
         )
         ignore_mask = tf.cast(best_iou < ignore_thresh, tf.float32)
         xy_loss = (

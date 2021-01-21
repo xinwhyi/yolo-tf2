@@ -10,13 +10,8 @@
 *.mp4
 *.DS_Store
 *.bak
-*structure_requirements.txt
 *.swp
 *__pycache__
-*Train
-*Test
-*test.py
-test2.py
 *.tf
 *.tfrecord
 !.gitkeep
@@ -28,3 +23,4 @@ build
 dist
 *egg-info
 !requirements.txt
+*egg*
