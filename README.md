@@ -63,7 +63,7 @@
 
 * [Usage](#usage)
   * [Training](#training)
-    * [Training command](#training-command-line-equivalent)
+    * [Terminal command](#training-command-line-equivalent)
   * [Augmentation](#augmentation)
   * [Evaluation](#evaluation)
     * [Terminal command](#evaluation-command-line-equivalent)
@@ -91,9 +91,7 @@ git clone https://github.com/emadboctorx/yolo-tf2
 
 2. **Install**
 
-**Notes:** 
-
-- If you have a cuda-compatible GPU, uncomment `tensorflow-gpu` in `requirements.txt`
+**Note:** If you have a cuda-compatible GPU, uncomment `tensorflow-gpu` in `requirements.txt`
 
 ```sh
 cd yolo-tf2
@@ -122,8 +120,8 @@ yolotf2
 
 yolo-tf2 was initially an implementation of [yolov3](https://pjreddie.com/darknet/yolo/) 
 (you only look once)(training & inference) and support for all yolo versions was added in V1.1
-Yolo's original repo is [here](https://github.com/AlexeyAB/darknet) which is written in C/C++/Cu.
 
+Yolo's original repo is [here](https://github.com/AlexeyAB/darknet) (written in C/C++/Cu).
 Yolo is a state-of-the-art, real-time object detection system that is extremely 
 fast and accurate. There are many implementations that support tensorflow, only a few that 
 support tensorflow v2 and as I did not find versions that suit my needs so, 
@@ -137,7 +135,6 @@ It requires python 3.8+, is not platform specific and is MIT licensed.
 ### [1.5] - 2021-01-21
 - Fix bug that creates out of image bounding boxes after augmentation.
 - Fix bug with display commands
-- Update tf.map_fn to support deprecated dtype parameter.
 - Update dependencies to most recent versions.
 
 ### [1.4] - 2020-11-30
@@ -593,7 +590,9 @@ the working directory(if they do not exist)
 
 **Here are the most basic steps to augment images(no training, just augmentation):**
 
-If you need to augment photos and take your time to examine/visualize the results,
+**Note:** Augmentation is supported through `yolotf2 train --augmentation-preset PRESET1`.
+
+If you need to manually augment photos and take your time to examine/visualize the results,
 here are the steps:
 
 1- Copy images to data > photos or specify `image_folder=path_tom_image_folder`
