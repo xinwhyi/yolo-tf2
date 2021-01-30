@@ -57,7 +57,7 @@ def parse_voc_file(file_path, voc_conf):
         x0 = get_tree_item(box_item, tags['object']['object_box']['x0'], file_path).text
         y0 = get_tree_item(box_item, tags['object']['object_box']['y0'], file_path).text
         x1 = get_tree_item(box_item, tags['object']['object_box']['x1'], file_path).text
-        y1 = get_tree_item(box_item, tags['Object']['object_box']['y1'], file_path).text
+        y1 = get_tree_item(box_item, tags['object']['object_box']['y1'], file_path).text
         image_data.append([image_path, name, image_width, image_height, x0, y0, x1, y1])
     return image_data
 
