@@ -16,7 +16,6 @@ Only code/doc bugs, performance issues, feature requests and installation issues
 - OS Platform and Distribution (e.g., Linux Ubuntu 16.04):
 - Dependency versions:
 - Python version:
-- GPU model and memory:
 
 **Describe the current behavior**
 
