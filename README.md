@@ -72,6 +72,10 @@
     * [Terminal command (video)](#detection-video-command-line-equivalent)
 
 * [Contributing](#contributing)
+* [Issues](#issue-policy)
+  * [What will be addressed](#relevant-issues)
+  * [What will not be adressed](#irrelevant-issues)
+    
 * [License](#license)
 * [Show your support](#show-your-support)
 * [Contact](#contact)
@@ -724,6 +728,27 @@ learn, inspire, and create. Any contributions you make are greatly appreciated.
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+## **Issue policy**
+There are relevant cases in which the issues will be addressed and irrelevant ones that will be closed.
+
+### Relevant issues
+The following issues will be addressed.
+- Bugs.
+- Performance issues.
+- Installation issues.
+- Documentation issues.
+- Feature requests.
+- Dependency issues that can be solved.
+
+### Irrelevant issues
+The following issues will not be addressed and will be closed.
+- Issues without context / clear and concise explanation.
+- Issues without standalone code (minimum reproducible example), or a jupyter notebook link to reproduce errors.
+- Issues that are improperly formatted.
+- Issues that are dataset / label specific without a dataset sample link.
+- Issues that are the result of doing something that is unsupported by the existing features.
+- Issues that are not considered as improvement / useful.
 
 ## **License**
 

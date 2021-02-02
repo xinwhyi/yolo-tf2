@@ -76,9 +76,7 @@ class Trainer(BaseModel):
         ), f'Empty image folder: {self.image_folder}'
         self.image_width, self.image_height = imagesize.get(images[0])
         self.classes_file = get_abs_path(classes_file, verify=True)
-        self.class_names = [
-            item.strip() for item in open(self.classes_file).readlines()
-        ]
+        self.class_names = [item.strip() for item in open(self.classes_file)]
         super().__init__(
             input_shape,
             model_configuration,

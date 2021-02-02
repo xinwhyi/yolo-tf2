@@ -44,7 +44,7 @@ class Detector(BaseModel):
             iou_threshold: float, values less than the threshold are ignored.
             score_threshold: float, values less than the threshold are ignored.
         """
-        self.class_names = [item.strip() for item in open(classes_file).readlines()]
+        self.class_names = [item.strip() for item in open(classes_file)]
         self.box_colors = {
             class_name: color
             for class_name, color in zip(

@@ -367,9 +367,7 @@ def calculate_display_data(prediction_file, classes_file, img_width, img_height,
     rows = []
     indices = {
         item: ind
-        for ind, item in enumerate(
-            [item.strip() for item in open(classes_file).readlines()]
-        )
+        for ind, item in enumerate([item.strip() for item in open(classes_file)])
     }
     for ind, item in preds.iterrows():
         img, obj, xx1, yy1, xx2, yy2, score, imgw, imgh, dk = item.values

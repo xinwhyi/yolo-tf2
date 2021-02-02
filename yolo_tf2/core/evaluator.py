@@ -48,7 +48,7 @@ class Evaluator(BaseModel):
                 as true positive.
         """
         self.classes_file = classes_file
-        self.class_names = [item.strip() for item in open(classes_file).readlines()]
+        self.class_names = [item.strip() for item in open(classes_file)]
         super().__init__(
             input_shape,
             model_configuration,
