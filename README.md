@@ -683,7 +683,7 @@ Here are the most basic steps to perform detection:
         detector = Detector(
             input_shape=(416, 416, 3),
             model_configuration='/path/to/DarkNet/yolo_version.cfg,
-            '/path/to/classes_file.txt',
+            classes_file='/path/to/classes_file.txt',
             score_threshold=0.5,
             iou_threshold=0.5,
             max_boxes=100,
