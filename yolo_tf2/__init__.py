@@ -1,11 +1,9 @@
 import sys
 
-from yolo_tf2 import config, core, utils
-
 __author__ = 'Emad Boctor'
 __email__ = 'emad_1989@hotmail.com'
 __license__ = 'MIT'
-__version__ = 1.4
+__version__ = 1.5
 
 if sys.version_info < (3, 8):
     print(f'Yolo-tf2 {__version__} requires Python 3.8+')

@@ -5,30 +5,19 @@ import imagesize
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.callbacks import (
-    Callback,
-    EarlyStopping,
-    ModelCheckpoint,
-    ReduceLROnPlateau,
-    TensorBoard,
-)
-
+from tensorflow.keras.callbacks import (Callback, EarlyStopping,
+                                        ModelCheckpoint, ReduceLROnPlateau,
+                                        TensorBoard)
 from yolo_tf2.config.augmentation_options import AUGMENTATIONS
 from yolo_tf2.core.augmentor import DataAugment
 from yolo_tf2.core.evaluator import Evaluator
 from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.anchors import generate_anchors, k_means
-from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv, parse_voc_folder
-from yolo_tf2.utils.common import (
-    LOGGER,
-    activate_gpu,
-    calculate_loss,
-    get_abs_path,
-    get_image_files,
-    timer,
-    transform_images,
-    transform_targets,
-)
+from yolo_tf2.utils.annotation_parsers import (adjust_non_voc_csv,
+                                               parse_voc_folder)
+from yolo_tf2.utils.common import (LOGGER, activate_gpu, calculate_loss,
+                                   get_abs_path, get_image_files, timer,
+                                   transform_images, transform_targets)
 from yolo_tf2.utils.dataset_handlers import get_feature_map, read_tfr, save_tfr
 
 

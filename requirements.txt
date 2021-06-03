@@ -1,17 +1,16 @@
 imagesize==1.2.0
 numpy==1.19.5
-pandas==1.2.1
+pandas==1.2.4
 seaborn==0.11.1
-tensorflow==2.4.0
-# tensorflow-gpu==2.4.0
-matplotlib==3.3.3
+tensorflow==2.5.0
+matplotlib==3.4.2
 lxml==4.6.3
 imgaug==0.4.0
-tensorflow-addons==0.12.0
-opencv-python-headless==4.5.1.48
+tensorflow-addons==0.13.0
+opencv-python-headless==4.5.2.52
 imagecorruptions==1.1.2
 configparser~=5.0.1
-scipy==1.6.0
-PyQt5==5.15.2
-tabulate==0.8.7
-ipykernel==5.4.3
+scipy==1.6.3
+PyQt5==5.15.4
+tabulate==0.8.9
+ipykernel==5.5.5

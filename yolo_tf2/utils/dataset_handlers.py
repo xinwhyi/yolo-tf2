@@ -5,7 +5,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-
 from yolo_tf2.utils.common import LOGGER, get_abs_path
 
 

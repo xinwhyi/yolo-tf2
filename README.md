@@ -8,7 +8,7 @@
   <a href="https://github.com/emadboctorx/yolov3-keras-tf2/">
   </a>
 
-  <h3 align="center">Yolo (all versions) Real Time Object Detector in tensorflow 2.4</h3>
+  <h3 align="center">Yolo (all versions) Real Time Object Detector in tensorflow 2.5</h3>
     .
     <a href="https://github.com/emadboctorx/yolov3-keras-tf2/issues">Report Bug</a>
     ·
@@ -46,7 +46,7 @@
     * [Detection](#detection-options)
   * [DarkNet models loaded directly from .cfg files](#darknet-models-loaded-directly-from-cfg-files)
   * [YoloV4 support](#yolov4-support)
-  * [tensorflow-2.4--keras-functional-api](#tensorflow-24--keras-functional-api)
+  * [tensorflow-2.5--keras-functional-api](#tensorflow-25--keras-functional-api)
   * [cpu-gpu support](#cpu--gpu-support)
   * [Random weights and DarkNet weights support](#random-weights-and-darknet-weights-support)
   * [csv-xml annotation parsers.](#csv-xml-annotation-parsers)
@@ -94,8 +94,6 @@ git clone https://github.com/emadboctorx/yolo-tf2
 ```
 
 2. **Install**
-
-**Note:** If you have a cuda-compatible GPU, uncomment `tensorflow-gpu` in `requirements.txt`
 
 ```sh
 cd yolo-tf2
@@ -243,7 +241,7 @@ Models are loaded directly from DarkNet .cfg files for convenience.
 As models currently load from .cfg files directly, all yolo versions including v4 are supported
 the configuration file needs to be passed as argument, and the model is loaded.
 
-### **tensorflow 2.4 & keras functional api**
+### **tensorflow 2.5 & keras functional api**
 
 This program leverages features that were introduced in tensorflow 2.x 
 including: 

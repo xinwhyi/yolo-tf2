@@ -12,7 +12,8 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 from lxml import etree
 from tensorflow.keras.layers import Layer
-from tensorflow.keras.losses import binary_crossentropy, sparse_categorical_crossentropy
+from tensorflow.keras.losses import (binary_crossentropy,
+                                     sparse_categorical_crossentropy)
 from tensorflow.python.keras.utils import tf_utils
 from tensorflow.python.util.tf_export import keras_export
 

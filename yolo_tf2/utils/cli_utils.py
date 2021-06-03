@@ -1,5 +1,4 @@
 import pandas as pd
-
 import yolo_tf2
 from yolo_tf2.config.augmentation_options import AUGMENTATION_PRESETS
 from yolo_tf2.config.cli_args import DETECTION, EVALUATION, GENERAL, TRAINING

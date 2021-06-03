@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-
 from yolo_tf2.utils.common import LOGGER, get_abs_path
 
 if sys.platform == 'darwin':

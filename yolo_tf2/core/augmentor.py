@@ -9,15 +9,9 @@ import pandas as pd
 from imgaug import augmenters as iaa
 from imgaug import parameters as iap
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
-
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv
-from yolo_tf2.utils.common import (
-    LOGGER,
-    get_abs_path,
-    get_image_files,
-    ratios_to_coordinates,
-    timer,
-)
+from yolo_tf2.utils.common import (LOGGER, get_abs_path, get_image_files,
+                                   ratios_to_coordinates, timer)
 
 
 class DataAugment:
