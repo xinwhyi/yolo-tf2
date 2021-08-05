@@ -5,14 +5,14 @@
 [![MIT License][license-shield]][license-url]
 
 <p>
-  <a href="https://github.com/schissmantics/yolov3-keras-tf2/">
+  <a href="https://github.com/schissmantics/yolo-tf2/">
   </a>
 
   <h3 align="center">Yolo (all versions) Real Time Object Detector in tensorflow 2.5</h3>
     .
-    <a href="https://github.com/schissmantics/yolov3-keras-tf2/issues">Report Bug</a>
+    <a href="https://github.com/schissmantics/yolo-tf2/issues">Report Bug</a>
     ·
-    <a href="https://github.com/schissmantics/yolov3-keras-tf2/issues">Request Feature</a>
+    <a href="https://github.com/schissmantics/yolo-tf2/issues">Request Feature</a>
   </p>
   
 <!-- TODO -->
@@ -760,17 +760,17 @@ Give a ⭐️ if this project helped you!
 
 schissmantics@outlook.com
 
-Project link: https://github.com/schissmantics/yolov3-keras-tf2
+Project link: https://github.com/schissmantics/yolo-tf2
                    
 
 
-[contributors-shield]: https://img.shields.io/github/contributors/schissmantics/yolov3-keras-tf2?style=flat-square
-[contributors-url]: https://github.com/schissmantics/yolov3-keras-tf2/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/schissmantics/yolov3-keras-tf2?style=flat-square
-[forks-url]: https://github.com/schissmantics/yolov3-keras-tf2/network/members
-[stars-shield]: https://img.shields.io/github/stars/schissmantics/yolov3-keras-tf2?style=flat-square
-[stars-url]: https://github.com/schissmantics/yolov3-keras-tf2/stargazers
-[issues-shield]: https://img.shields.io/github/issues/schissmantics/yolov3-keras-tf2?style=flat-square
-[issues-url]: https://github.com/schissmantics/yolov3-keras-tf2/issues
-[license-shield]: https://img.shields.io/github/license/schissmantics/yolov3-keras-tf2
-[license-url]: https://github.com/schissmantics/yolov3-keras-tf2/blob/master/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/schissmantics/yolo-tf2?style=flat-square
+[contributors-url]: https://github.com/schissmantics/yolo-tf2/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/schissmantics/yolo-tf2?style=flat-square
+[forks-url]: https://github.com/schissmantics/yolo-tf2/network/members
+[stars-shield]: https://img.shields.io/github/stars/schissmantics/yolo-tf2?style=flat-square
+[stars-url]: https://github.com/schissmantics/yolo-tf2/stargazers
+[issues-shield]: https://img.shields.io/github/issues/schissmantics/yolo-tf2?style=flat-square
+[issues-url]: https://github.com/schissmantics/yolo-tf2/issues
+[license-shield]: https://img.shields.io/github/license/schissmantics/yolo-tf2
+[license-url]: https://github.com/schissmantics/yolo-tf2/blob/master/LICENSE

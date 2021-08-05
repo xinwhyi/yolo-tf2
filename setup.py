@@ -6,7 +6,7 @@ setup(
     name='yolo_tf2',
     version='1.5',
     packages=find_packages(),
-    url='https://github.com/schissmantics/yolov3-keras-tf2',
+    url='https://github.com/schissmantics/yolo-tf2',
     license='MIT',
     author='schismantics',
     author_email='schissmantics@outlook.com',
