@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Please make sure that this is a feature request. As per our [Issue policy](https://github.com/emadboctorx/yolo-tf2#issue-policy), Only code/doc bugs, performance issues, feature requests and installation issues will be addressed.
+Please make sure that this is a feature request. As per our [Issue policy](https://github.com/schissmantics/yolo-tf2#issue-policy), Only code/doc bugs, performance issues, feature requests and installation issues will be addressed.
 
 **Is your feature request related to a problem?** 
 

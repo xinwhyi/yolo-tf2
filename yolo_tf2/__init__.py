@@ -1,7 +1,7 @@
 import sys
 
-__author__ = 'Emad Boctor'
-__email__ = 'emad_1989@hotmail.com'
+__author__ = 'schissmantics'
+__email__ = 'schissmantics'
 __license__ = 'MIT'
 __version__ = 1.5
 

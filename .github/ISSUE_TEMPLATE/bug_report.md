@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 <em>Please make sure that this is a bug. As per our
-[Issue policy](https://github.com/emadboctorx/yolo-tf2#issue-policy),
+[Issue policy](https://github.com/schissmantics/yolo-tf2#issue-policy),
 Only code/doc bugs, performance issues, feature requests and installation issues will be addressed</em>
 
 **System information**

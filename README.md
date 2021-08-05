@@ -5,14 +5,14 @@
 [![MIT License][license-shield]][license-url]
 
 <p>
-  <a href="https://github.com/emadboctorx/yolov3-keras-tf2/">
+  <a href="https://github.com/schissmantics/yolov3-keras-tf2/">
   </a>
 
   <h3 align="center">Yolo (all versions) Real Time Object Detector in tensorflow 2.5</h3>
     .
-    <a href="https://github.com/emadboctorx/yolov3-keras-tf2/issues">Report Bug</a>
+    <a href="https://github.com/schissmantics/yolov3-keras-tf2/issues">Report Bug</a>
     ·
-    <a href="https://github.com/emadboctorx/yolov3-keras-tf2/issues">Request Feature</a>
+    <a href="https://github.com/schissmantics/yolov3-keras-tf2/issues">Request Feature</a>
   </p>
   
 <!-- TODO -->
@@ -90,7 +90,7 @@
 1. **Clone the repo**
 
 ```sh
-git clone https://github.com/emadboctorx/yolo-tf2
+git clone https://github.com/schissmantics/yolo-tf2
 ```
 
 2. **Install**
@@ -407,7 +407,7 @@ Augmentation visualization (before/after) as shown below:
 * **Dataset pre/post augmentation view with bounding boxes:**
 
 You can always visualize different stages of the program using my other repo 
-[labelpix](https://github.com/emadboctorx/labelpix) which is tool for drawing 
+[labelpix](https://github.com/schissmantics/labelpix) which is tool for drawing 
 bounding boxes, but can also be used to visualize bounding boxes over images using 
 csv files in the format mentioned [here](#csv-xml-annotation-parsers).
 
@@ -459,7 +459,7 @@ as precision and recall curves for every class in the model.
 
 ### **labelpix support**
 
-You can check my other repo [labelpix](https://github.com/emadboctorx/labelpix) which is a
+You can check my other repo [labelpix](https://github.com/schissmantics/labelpix) which is a
 labeling tool for drawing bounding boxes over images if you need to make custom datasets
 the tool can help and is supported by the detector. You can use csv files
 in the format mentioned [here](#csv-xml-annotation-parsers) as labels and load
@@ -622,7 +622,7 @@ or the folder you specified(if you did specify one)
 And you should find 2 csv files in the output folder: 
 
 1. `augmented_data_plus_original.csv` : you can use this with 
-[labelpix](https://github.com/emadboctorx/labelpix) to visualize results with
+[labelpix](https://github.com/schissmantics/labelpix) to visualize results with
 bounding boxes
 
 2. `adjusted_data_plus_original.csv`
@@ -758,19 +758,19 @@ Give a ⭐️ if this project helped you!
 
 ## **Contact**
 
-Emad Boctor - emad_1989@hotmail.com
+schissmantics@outlook.com
 
-Project link: https://github.com/emadboctorx/yolov3-keras-tf2
+Project link: https://github.com/schissmantics/yolov3-keras-tf2
                    
 
 
-[contributors-shield]: https://img.shields.io/github/contributors/emadboctorx/yolov3-keras-tf2?style=flat-square
-[contributors-url]: https://github.com/emadboctorx/yolov3-keras-tf2/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/emadboctorx/yolov3-keras-tf2?style=flat-square
-[forks-url]: https://github.com/emadboctorx/yolov3-keras-tf2/network/members
-[stars-shield]: https://img.shields.io/github/stars/emadboctorx/yolov3-keras-tf2?style=flat-square
-[stars-url]: https://github.com/emadboctorx/yolov3-keras-tf2/stargazers
-[issues-shield]: https://img.shields.io/github/issues/emadboctorx/yolov3-keras-tf2?style=flat-square
-[issues-url]: https://github.com/emadboctorx/yolov3-keras-tf2/issues
-[license-shield]: https://img.shields.io/github/license/emadboctorx/yolov3-keras-tf2
-[license-url]: https://github.com/emadboctorx/yolov3-keras-tf2/blob/master/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/schissmantics/yolov3-keras-tf2?style=flat-square
+[contributors-url]: https://github.com/schissmantics/yolov3-keras-tf2/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/schissmantics/yolov3-keras-tf2?style=flat-square
+[forks-url]: https://github.com/schissmantics/yolov3-keras-tf2/network/members
+[stars-shield]: https://img.shields.io/github/stars/schissmantics/yolov3-keras-tf2?style=flat-square
+[stars-url]: https://github.com/schissmantics/yolov3-keras-tf2/stargazers
+[issues-shield]: https://img.shields.io/github/issues/schissmantics/yolov3-keras-tf2?style=flat-square
+[issues-url]: https://github.com/schissmantics/yolov3-keras-tf2/issues
+[license-shield]: https://img.shields.io/github/license/schissmantics/yolov3-keras-tf2
+[license-url]: https://github.com/schissmantics/yolov3-keras-tf2/blob/master/LICENSE
