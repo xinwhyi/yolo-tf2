@@ -8,7 +8,7 @@
   <a href="https://github.com/schissmantics/yolo-tf2/">
   </a>
 
-  <h3 align="center">Yolo (all versions) Real Time Object Detector in tensorflow 2.5</h3>
+  <h3 align="center">Yolo (all versions) Real Time Object Detector in tensorflow 2.x</h3>
     .
     <a href="https://github.com/schissmantics/yolo-tf2/issues">Report Bug</a>
     ·
