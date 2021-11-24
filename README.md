@@ -46,7 +46,7 @@
     * [Detection](#detection-options)
   * [DarkNet models loaded directly from .cfg files](#darknet-models-loaded-directly-from-cfg-files)
   * [YoloV4 support](#yolov4-support)
-  * [tensorflow-2.5--keras-functional-api](#tensorflow-25--keras-functional-api)
+  * [tensorflow-2.7--keras-functional-api](#tensorflow-27--keras-functional-api)
   * [cpu-gpu support](#cpu--gpu-support)
   * [Random weights and DarkNet weights support](#random-weights-and-darknet-weights-support)
   * [csv-xml annotation parsers.](#csv-xml-annotation-parsers)
@@ -128,7 +128,7 @@ Yolo is a state-of-the-art, real-time object detection system that is extremely
 fast and accurate. There are many implementations that support tensorflow, only a few that 
 support tensorflow v2 and as I did not find versions that suit my needs so, 
 I decided to create this version which is very flexible and customizable. 
-It requires python 3.8+, is not platform specific and is MIT licensed.
+It requires python 3.9+, is not platform specific and is MIT licensed.
 
 <!-- Updates -->
 
@@ -241,7 +241,7 @@ Models are loaded directly from DarkNet .cfg files for convenience.
 As models currently load from .cfg files directly, all yolo versions including v4 are supported
 the configuration file needs to be passed as argument, and the model is loaded.
 
-### **tensorflow 2.5 & keras functional api**
+### **tensorflow 2.7 & keras functional api**
 
 This program leverages features that were introduced in tensorflow 2.x 
 including: 

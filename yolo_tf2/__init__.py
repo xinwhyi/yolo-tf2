@@ -6,7 +6,7 @@ __license__ = 'MIT'
 __version__ = 1.5
 
 if sys.version_info < (3, 8):
-    print(f'Yolo-tf2 {__version__} requires Python 3.8+')
+    print(f'Yolo-tf2 {__version__} requires Python 3.9+')
     sys.exit(1)
 
 dependencies = (
