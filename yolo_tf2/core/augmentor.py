@@ -1,11 +1,11 @@
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import cv2
 import imagesize
 import imgaug as ia
 import numpy as np
 import pandas as pd
+from cv2 import cv2
 from imgaug import augmenters as iaa
 from imgaug import parameters as iap
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
