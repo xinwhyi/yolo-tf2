@@ -10,7 +10,7 @@ setuptools==58.5.3
 tensorflow==2.7.0
 tensorflow_addons==0.15.0
 imagecorruptions==1.1.2
-configparser~=5.1.0
+configparser~=5.2.0
 scipy==1.7.1
 PyQt5==5.15.4
 tabulate==0.8.9
