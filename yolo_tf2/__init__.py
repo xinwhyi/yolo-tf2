@@ -1,7 +1,7 @@
 import sys
 
-__author__ = 'schissmantics'
-__email__ = 'schissmantics'
+__author__ = 'alternativebug'
+__email__ = 'alternativebug'
 __license__ = 'MIT'
 __version__ = 1.5
 
