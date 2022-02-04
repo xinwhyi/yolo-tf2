@@ -6,7 +6,7 @@ numpy==1.22.1
 opencv-python-headless==4.5.5.62
 pandas==1.4.0
 seaborn==0.11.2
-setuptools==60.6.0
+setuptools==60.7.1
 tensorflow==2.8.0
 tensorflow_addons==0.15.0
 imagecorruptions==1.1.2
