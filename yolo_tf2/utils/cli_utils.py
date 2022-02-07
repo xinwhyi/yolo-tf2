@@ -1,11 +1,10 @@
 import pandas as pd
-
 import yolo_tf2
 from yolo_tf2.config.augmentation_options import AUGMENTATION_PRESETS
 from yolo_tf2.config.cli_args import DETECTION, EVALUATION, GENERAL, TRAINING
-from yolo_tf2.core.detection import Detector
-from yolo_tf2.core.evaluation import Evaluator
-from yolo_tf2.core.training import Trainer
+from yolo_tf2.core.detector import Detector
+from yolo_tf2.core.evaluator import Evaluator
+from yolo_tf2.core.trainer import Trainer
 from yolo_tf2.utils.common import get_abs_path, get_image_files
 
 
@@ -129,8 +128,8 @@ def train(parser):
         input_shape=cli_args.input_shape,
         model_configuration=cli_args.model_cfg,
         classes_file=cli_args.classes,
-        train_tfrecord=cli_args.train_tfrecord,
-        valid_tfrecord=cli_args.valid_tfrecord,
+        train_tf_record=cli_args.train_tfrecord,
+        valid_tf_record=cli_args.valid_tfrecord,
         max_boxes=cli_args.max_boxes,
         iou_threshold=cli_args.iou_threshold,
         score_threshold=cli_args.score_threshold,
@@ -184,8 +183,8 @@ def evaluate(parser):
     evaluator = Evaluator(
         input_shape=cli_args.input_shape,
         model_configuration=cli_args.model_cfg,
-        train_tfrecord=cli_args.train_tfrecord,
-        valid_tfrecord=cli_args.valid_tfrecord,
+        train_tf_record=cli_args.train_tfrecord,
+        valid_tf_record=cli_args.valid_tfrecord,
         classes_file=cli_args.classes,
         max_boxes=cli_args.max_boxes,
         iou_threshold=cli_args.iou_threshold,

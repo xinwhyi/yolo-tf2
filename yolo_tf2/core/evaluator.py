@@ -5,26 +5,21 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from cv2 import cv2
-
-from yolo_tf2.core.models import YoloObject
-from yolo_tf2.utils.common import (
-    LOGGER,
-    get_abs_path,
-    get_detection_data,
-    timer,
-    transform_images,
-)
+from yolo_tf2.core.models import BaseModel
+from yolo_tf2.utils.common import (LOGGER, get_abs_path, get_detection_data,
+                                   timer, transform_images)
 from yolo_tf2.utils.dataset_handlers import get_feature_map, read_tfr
-from yolo_tf2.utils.visual_tools import visualize_evaluation_stats, visualize_pr
+from yolo_tf2.utils.visual_tools import (visualize_evaluation_stats,
+                                         visualize_pr)
 
 
-class Evaluator(YoloObject):
+class Evaluator(BaseModel):
     def __init__(
         self,
         input_shape,
         model_configuration,
-        train_tfrecord,
-        valid_tfrecord,
+        train_tf_record,
+        valid_tf_record,
         classes_file,
         anchors=None,
         masks=None,
@@ -37,8 +32,8 @@ class Evaluator(YoloObject):
         Args:
             input_shape: input_shape: tuple, (n, n, c)
             model_configuration: Path to model configuration file.
-            train_tfrecord: Path to training TFRecord file.
-            valid_tfrecord: Path to validation TFRecord file.
+            train_tf_record: Path to training TFRecord file.
+            valid_tf_record: Path to validation TFRecord file.
             classes_file: File containing class names \n delimited.
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
@@ -59,13 +54,13 @@ class Evaluator(YoloObject):
             iou_threshold,
             score_threshold,
         )
-        self.train_tfrecord = train_tfrecord
-        self.valid_tfrecord = valid_tfrecord
+        self.train_tf_record = train_tf_record
+        self.valid_tf_record = valid_tf_record
         self.train_dataset_size = sum(
-            1 for _ in tf.data.TFRecordDataset(train_tfrecord)
+            1 for _ in tf.data.TFRecordDataset(train_tf_record)
         )
         self.valid_dataset_size = sum(
-            1 for _ in tf.data.TFRecordDataset(valid_tfrecord)
+            1 for _ in tf.data.TFRecordDataset(valid_tf_record)
         )
         self.dataset_size = self.train_dataset_size + self.valid_dataset_size
         self.predicted = 1
@@ -175,14 +170,14 @@ class Evaluator(YoloObject):
         self.load_weights(trained_weights)
         features = get_feature_map()
         train_dataset = read_tfr(
-            self.train_tfrecord,
+            self.train_tf_record,
             self.classes_file,
             features,
             self.max_boxes,
             get_features=True,
         )
         valid_dataset = read_tfr(
-            self.valid_tfrecord,
+            self.valid_tf_record,
             self.classes_file,
             features,
             self.max_boxes,

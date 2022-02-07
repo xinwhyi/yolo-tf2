@@ -10,9 +10,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import tensorflow_addons as tfa
-from keras.layers import Layer
-from keras.losses import binary_crossentropy, sparse_categorical_crossentropy
 from lxml import etree
+from tensorflow.keras.layers import Layer
+from tensorflow.keras.losses import (binary_crossentropy,
+                                     sparse_categorical_crossentropy)
 from tensorflow.python.keras.utils import tf_utils
 from tensorflow.python.util.tf_export import keras_export
 
@@ -309,6 +310,19 @@ def get_detection_data(image, image_name, outputs, class_names):
         ]
     ]
     return data
+
+
+def activate_gpu():
+    """
+    Check for GPU existence and if found, activate.
+
+    Returns:
+        None
+    """
+    physical_devices = tf.config.experimental.list_physical_devices('GPU')
+    if len(physical_devices) > 0:
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        LOGGER.info('GPU activated')
 
 
 def calculate_ratios(x1, y1, x2, y2, width, height):

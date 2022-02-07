@@ -4,18 +4,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 import tensorflow as tf
 from cv2 import cv2
-
-from yolo_tf2.core.models import YoloObject
-from yolo_tf2.utils.common import (
-    LOGGER,
-    get_abs_path,
-    get_detection_data,
-    timer,
-    transform_images,
-)
+from yolo_tf2.core.models import BaseModel
+from yolo_tf2.utils.common import (LOGGER, activate_gpu, get_abs_path,
+                                   get_detection_data, timer, transform_images)
 
 
-class Detector(YoloObject):
+class Detector(BaseModel):
     """Tool for detection on photos/videos"""
 
     def __init__(
@@ -64,6 +58,7 @@ class Detector(YoloObject):
             iou_threshold=iou_threshold,
             score_threshold=score_threshold,
         )
+        activate_gpu()
 
     def detect_image(self, image_data, image_name):
         """
