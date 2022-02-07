@@ -643,8 +643,8 @@ Here are the most basic steps to evaluate a trained model:
        evaluator = Evaluator(
                    input_shape=(416, 416, 3),
                    model_configuration='yolo_tf2/config/yolo3.cfg',
-                   train_tf_record='/path/to/train.tfrecord',
-                   valid_tf_record='/path/to/valid.tfrecord',
+                   train_tfrecord='/path/to/train.tfrecord',
+                   valid_tfrecord='/path/to/valid.tfrecord',
                    classes_file='/path/to/classes.txt',
                    anchors=anchors,  # defaults to yolov3 anchors
                    score_threshold=0.1  # defaults to 0.5 but it's okay to be lower

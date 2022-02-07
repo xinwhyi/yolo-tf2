@@ -6,15 +6,25 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import Model
-from tensorflow.keras.layers import (Add, BatchNormalization, Concatenate,
-                                     Conv2D, Input, Lambda, LeakyReLU,
-                                     MaxPooling2D, UpSampling2D, ZeroPadding2D)
-from tensorflow.keras.regularizers import l2
+from keras import Model
+from keras.layers import (
+    Add,
+    BatchNormalization,
+    Concatenate,
+    Conv2D,
+    Input,
+    Lambda,
+    LeakyReLU,
+    MaxPooling2D,
+    UpSampling2D,
+    ZeroPadding2D,
+)
+from keras.regularizers import l2
+
 from yolo_tf2.utils.common import LOGGER, Mish, get_abs_path, get_boxes, timer
 
 
-class BaseModel(dict):
+class YoloObject(dict):
     def __init__(
         self,
         input_shape,
@@ -39,7 +49,7 @@ class BaseModel(dict):
             iou_threshold: Minimum overlap that counts as a valid detection.
             score_threshold: Minimum confidence that counts as a valid detection.
         """
-        super(BaseModel, self).__init__(**kwargs)
+        super(YoloObject, self).__init__(**kwargs)
         assert any(
             (
                 '3' in model_configuration,

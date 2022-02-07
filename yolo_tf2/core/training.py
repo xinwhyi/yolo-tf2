@@ -5,23 +5,33 @@ import imagesize
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.callbacks import (Callback, EarlyStopping,
-                                        ModelCheckpoint, ReduceLROnPlateau,
-                                        TensorBoard)
+from keras.callbacks import (
+    Callback,
+    EarlyStopping,
+    ModelCheckpoint,
+    ReduceLROnPlateau,
+    TensorBoard,
+)
+
 from yolo_tf2.config.augmentation_options import AUGMENTATIONS
-from yolo_tf2.core.augmentor import DataAugment
-from yolo_tf2.core.evaluator import Evaluator
-from yolo_tf2.core.models import BaseModel
+from yolo_tf2.core.augmentation import DataAugment
+from yolo_tf2.core.evaluation import Evaluator
+from yolo_tf2.core.models import YoloObject
 from yolo_tf2.utils.anchors import generate_anchors, k_means
-from yolo_tf2.utils.annotation_parsers import (adjust_non_voc_csv,
-                                               parse_voc_folder)
-from yolo_tf2.utils.common import (LOGGER, activate_gpu, calculate_loss,
-                                   get_abs_path, get_image_files, timer,
-                                   transform_images, transform_targets)
+from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv, parse_voc_folder
+from yolo_tf2.utils.common import (
+    LOGGER,
+    calculate_loss,
+    get_abs_path,
+    get_image_files,
+    timer,
+    transform_images,
+    transform_targets,
+)
 from yolo_tf2.utils.dataset_handlers import get_feature_map, read_tfr, save_tfr
 
 
-class Trainer(BaseModel):
+class Trainer(YoloObject):
     """
     Create a training instance.
     """
@@ -31,8 +41,8 @@ class Trainer(BaseModel):
         input_shape,
         model_configuration,
         classes_file,
-        train_tf_record=None,
-        valid_tf_record=None,
+        train_tfrecord=None,
+        valid_tfrecord=None,
         anchors=None,
         masks=None,
         max_boxes=100,
@@ -46,8 +56,8 @@ class Trainer(BaseModel):
             input_shape: tuple, (n, n, c)
             model_configuration: Path to yolo DarkNet configuration .cfg file.
             classes_file: Path to file containing dataset classes.
-            train_tf_record: Path to training tfrecord.
-            valid_tf_record: Path to validation tfrecord.
+            train_tfrecord: Path to training tfrecord.
+            valid_tfrecord: Path to validation tfrecord.
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
             max_boxes: Maximum boxes of the tfrecords provided(if any) or
@@ -76,12 +86,12 @@ class Trainer(BaseModel):
             iou_threshold,
             score_threshold,
         )
-        self.train_tf_record = train_tf_record
-        self.valid_tf_record = valid_tf_record
-        if train_tf_record:
-            self.train_tf_record = get_abs_path(train_tf_record, verify=True)
-        if valid_tf_record:
-            self.valid_tf_record = get_abs_path(valid_tf_record, verify=True)
+        self.train_tfrecord = train_tfrecord
+        self.valid_tfrecord = valid_tfrecord
+        if train_tfrecord:
+            self.train_tfrecord = get_abs_path(train_tfrecord, verify=True)
+        if valid_tfrecord:
+            self.valid_tfrecord = get_abs_path(valid_tfrecord, verify=True)
 
     def get_adjusted_labels(self, configuration):
         """
@@ -177,11 +187,11 @@ class Trainer(BaseModel):
             labels_frame = self.augment_photos(new_dataset_conf)
         return labels_frame
 
-    def initialize_dataset(self, tf_record, batch_size, shuffle_buffer=512):
+    def initialize_dataset(self, tfrecord, batch_size, shuffle_buffer=512):
         """
         Initialize and prepare TFRecord dataset for training.
         Args:
-            tf_record: TFRecord file.
+            tfrecord: TFRecord file.
             batch_size: int, training batch size
             shuffle_buffer: Buffer size for shuffling dataset.
 
@@ -189,7 +199,7 @@ class Trainer(BaseModel):
             dataset.
         """
         dataset = read_tfr(
-            tf_record, self.classes_file, get_feature_map(), self.max_boxes
+            tfrecord, self.classes_file, get_feature_map(), self.max_boxes
         )
         dataset = dataset.shuffle(shuffle_buffer)
         dataset = dataset.batch(batch_size)
@@ -265,8 +275,8 @@ class Trainer(BaseModel):
         evaluator = Evaluator(
             self.input_shape,
             self.model_configuration,
-            self.train_tf_record,
-            self.valid_tf_record,
+            self.train_tfrecord,
+            self.valid_tfrecord,
             self.classes_file,
             self.anchors,
             self.masks,
@@ -365,7 +375,7 @@ class Trainer(BaseModel):
         LOGGER.info(f'Generating new dataset ...')
         test_size = new_dataset_conf.get('test_size')
         labels_frame = self.generate_new_frame(new_dataset_conf)
-        save_tfr(
+        self.train_tfrecord, self.valid_tfrecord = save_tfr(
             labels_frame,
             get_abs_path('data', 'tfrecords', create_parents=True),
             new_dataset_conf['dataset_name'],
@@ -373,18 +383,18 @@ class Trainer(BaseModel):
             self,
         )
 
-    def check_tf_records(self):
+    def check_tfrecords(self):
         """
         Ensure tfrecords are specified to start training.
 
         Returns:
             None
         """
-        if not self.train_tf_record:
+        if not self.train_tfrecord:
             issue = 'No training TFRecord specified'
             LOGGER.error(issue)
             raise ValueError(issue)
-        if not self.valid_tf_record:
+        if not self.valid_tfrecord:
             issue = 'No validation TFRecord specified'
             LOGGER.error(issue)
             raise ValueError(issue)
@@ -463,7 +473,6 @@ class Trainer(BaseModel):
         min_overlaps = min_overlaps or 0.5
         if clear_outputs:
             self.clear_outputs()
-        activate_gpu()
         LOGGER.info(f'Starting training ...')
         if new_anchors_conf:
             LOGGER.info(f'Generating new anchors ...')
@@ -473,12 +482,12 @@ class Trainer(BaseModel):
             self.load_weights(weights)
         if new_dataset_conf:
             self.create_new_dataset(new_dataset_conf)
-        self.check_tf_records()
+        self.check_tfrecords()
         training_dataset = self.initialize_dataset(
-            self.train_tf_record, batch_size, shuffle_buffer
+            self.train_tfrecord, batch_size, shuffle_buffer
         )
         valid_dataset = self.initialize_dataset(
-            self.valid_tf_record, batch_size, shuffle_buffer
+            self.valid_tfrecord, batch_size, shuffle_buffer
         )
         optimizer = tf.keras.optimizers.Adam(learning_rate)
         loss = [
@@ -495,8 +504,8 @@ class Trainer(BaseModel):
                 self.input_shape,
                 self.model_configuration,
                 self.classes_file,
-                self.train_tf_record,
-                self.valid_tf_record,
+                self.train_tfrecord,
+                self.valid_tfrecord,
                 self.anchors,
                 self.masks,
                 self.max_boxes,
@@ -546,8 +555,8 @@ class MidTrainingEvaluator(Callback, Trainer):
         input_shape,
         model_configuration,
         classes_file,
-        train_tf_record,
-        valid_tf_record,
+        train_tfrecord,
+        valid_tfrecord,
         anchors,
         masks,
         max_boxes,
@@ -570,8 +579,8 @@ class MidTrainingEvaluator(Callback, Trainer):
             input_shape: tuple, (n, n, c)
             model_configuration: Path to DarkNet cfg file.
             classes_file: File containing class names \n delimited.
-            train_tf_record: TFRecord file.
-            valid_tf_record: TFRecord file.
+            train_tfrecord: TFRecord file.
+            valid_tfrecord: TFRecord file.
             anchors: numpy array of (w, h) pairs.
             masks: numpy array of masks.
             max_boxes: Maximum boxes of the tfrecords provided(if any) or
@@ -597,8 +606,8 @@ class MidTrainingEvaluator(Callback, Trainer):
             input_shape,
             model_configuration,
             classes_file,
-            train_tf_record,
-            valid_tf_record,
+            train_tfrecord,
+            valid_tfrecord,
             anchors,
             masks,
             max_boxes,

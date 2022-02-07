@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+
 from yolo_tf2.utils.common import LOGGER, get_abs_path
 
 
@@ -135,7 +136,7 @@ def read_example(
     return x_train, y_train
 
 
-def write_tf_record(output_path, groups, data, trainer=None):
+def write_tfrecord(output_path, groups, data, trainer=None):
     """
     Write data to TFRecord.
     Args:
@@ -150,9 +151,9 @@ def write_tf_record(output_path, groups, data, trainer=None):
     print(f'Processing {os.path.split(output_path)[-1]}')
     if trainer:
         if 'train' in output_path:
-            trainer.train_tf_record = output_path
+            trainer.train_tfrecord = output_path
         if 'test' in output_path:
-            trainer.valid_tf_record = output_path
+            trainer.valid_tfrecord = output_path
     with tf.io.TFRecordWriter(output_path) as r_writer:
         for current_image, (image_path, objects) in enumerate(groups, 1):
             print(
@@ -223,14 +224,15 @@ def save_tfr(data, output_folder, dataset_name, test_size, trainer=None):
     )
     training_path = get_abs_path(output_folder, f'{dataset_name}_train.tfrecord')
     test_path = get_abs_path(output_folder, f'{dataset_name}_test.tfrecord')
-    write_tf_record(training_path, training_set, data, trainer)
+    write_tfrecord(training_path, training_set, data, trainer)
     LOGGER.info(f'Saved training TFRecord: {training_path}')
-    write_tf_record(test_path, test_set, data, trainer)
+    write_tfrecord(test_path, test_set, data, trainer)
     LOGGER.info(f'Saved validation TFRecord: {test_path}')
+    return training_path, test_path
 
 
 def read_tfr(
-    tf_record_file,
+    tfrecord_file,
     classes_file,
     feature_map,
     max_boxes,
@@ -241,7 +243,7 @@ def read_tfr(
     """
     Read and load dataset from TFRecord file.
     Args:
-        tf_record_file: Path to TFRecord file.
+        tfrecord_file: Path to TFRecord file.
         classes_file: file containing classes.
         feature_map: A dictionary of feature names mapped to tf.io objects.
         max_boxes: Maximum number of boxes per image.
@@ -252,14 +254,14 @@ def read_tfr(
     Returns:
         MapDataset object.
     """
-    tf_record_file = str(Path(tf_record_file).absolute().resolve().as_posix())
+    tfrecord_file = str(Path(tfrecord_file).absolute().resolve().as_posix())
     text_init = tf.lookup.TextFileInitializer(
         classes_file, tf.string, 0, tf.int64, -1, delimiter=classes_delimiter
     )
     class_table = tf.lookup.StaticHashTable(text_init, -1)
-    files = tf.data.Dataset.list_files(tf_record_file)
+    files = tf.data.Dataset.list_files(tfrecord_file)
     dataset = files.flat_map(tf.data.TFRecordDataset)
-    LOGGER.info(f'Read TFRecord: {tf_record_file}')
+    LOGGER.info(f'Read TFRecord: {tfrecord_file}')
     return dataset.map(
         lambda x: read_example(
             x, feature_map, class_table, max_boxes, new_size, get_features
