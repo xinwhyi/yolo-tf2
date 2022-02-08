@@ -3,12 +3,22 @@ import os
 from collections import defaultdict
 from configparser import ConfigParser
 
+import numpy as np
 import tensorflow as tf
 import tensorflow_addons as tfa
 from tensorflow.keras import Model
-from tensorflow.keras.layers import (Add, BatchNormalization, Concatenate,
-                                     Conv2D, Input, Lambda, LeakyReLU,
-                                     MaxPooling2D, UpSampling2D, ZeroPadding2D)
+from tensorflow.keras.layers import (
+    Add,
+    BatchNormalization,
+    Concatenate,
+    Conv2D,
+    Input,
+    Lambda,
+    LeakyReLU,
+    MaxPooling2D,
+    UpSampling2D,
+    ZeroPadding2D,
+)
 from tensorflow.keras.regularizers import l2
 
 from yolo_tf2.utils.common import get_abs_path, get_boxes

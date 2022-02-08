@@ -16,7 +16,6 @@ from tensorflow.keras.callbacks import (
 from yolo_tf2.config.augmentation_options import AUGMENTATIONS
 from yolo_tf2.core.augmentor import DataAugment
 from yolo_tf2.core.evaluator import Evaluator
-from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.anchors import generate_anchors, k_means
 from yolo_tf2.utils.annotation_parsers import adjust_non_voc_csv, parse_voc_folder
 from yolo_tf2.utils.common import (
@@ -29,10 +28,10 @@ from yolo_tf2.utils.common import (
     transform_images,
     transform_targets,
 )
-from yolo_tf2.utils.dataset_handlers import get_feature_map, read_tfr, save_tfr
+from yolo_tf2.utils.dataset import get_feature_map, read_tfr, save_tfr
 
 
-class Trainer(BaseModel):
+class Trainer:
     """
     Create a training instance.
     """
@@ -77,16 +76,6 @@ class Trainer(BaseModel):
         self.image_width, self.image_height = imagesize.get(images[0])
         self.classes_file = get_abs_path(classes_file, verify=True)
         self.class_names = [item.strip() for item in open(self.classes_file)]
-        super().__init__(
-            input_shape,
-            model_configuration,
-            len(self.class_names),
-            anchors,
-            masks,
-            max_boxes,
-            iou_threshold,
-            score_threshold,
-        )
         self.train_tf_record = train_tf_record
         self.valid_tf_record = valid_tf_record
         if train_tf_record:
@@ -440,40 +429,7 @@ class Trainer(BaseModel):
         clear_outputs=False,
         n_epoch_eval=None,
     ):
-        """
-        Train on the dataset.
-        Args:
-            epochs: Number of training epochs.
-            batch_size: Training batch size.
-            learning_rate: non-negative value.
-            new_anchors_conf: A dictionary containing anchor generation configuration.
-            new_dataset_conf: A dictionary containing dataset generation configuration.
-            dataset_name: Name of the dataset for model checkpoints.
-            weights: .tf or .weights file
-            evaluate: If False, the trained model will not be evaluated after training.
-            merge_evaluation: If False, training and validation maps will
-                be calculated separately.
-            evaluation_workers: Parallel predictions.
-            shuffle_buffer: Buffer size for shuffling datasets.
-            min_overlaps: a float value between 0 and 1, or a dictionary
-                containing each class in self.class_names mapped to its
-                minimum overlap
-            display_stats: If True and evaluate=True, evaluation statistics will
-                be displayed.
-            plot_stats: If True, Precision and recall curves as well as
-                comparative bar charts will be plotted
-            save_figs: If True and plot_stats=True, figures will be saved
-            clear_outputs: If True, old outputs will be cleared
-            n_epoch_eval: Conduct evaluation every n epoch.
-
-        Returns:
-            history object, pandas DataFrame with statistics, mAP score.
-        """
         min_overlaps = min_overlaps or 0.5
-        if clear_outputs:
-            self.clear_outputs()
-        activate_gpu()
-        LOGGER.info(f'Starting training ...')
         if new_anchors_conf:
             LOGGER.info(f'Generating new anchors ...')
             self.generate_new_anchors(new_anchors_conf)

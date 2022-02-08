@@ -6,7 +6,6 @@ import pandas as pd
 import tensorflow as tf
 from cv2 import cv2
 
-from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
     LOGGER,
     get_abs_path,
@@ -14,11 +13,11 @@ from yolo_tf2.utils.common import (
     timer,
     transform_images,
 )
-from yolo_tf2.utils.dataset_handlers import get_feature_map, read_tfr
+from yolo_tf2.utils.dataset import get_feature_map, read_tfr
 from yolo_tf2.utils.visual_tools import visualize_evaluation_stats, visualize_pr
 
 
-class Evaluator(BaseModel):
+class Evaluator:
     def __init__(
         self,
         input_shape,

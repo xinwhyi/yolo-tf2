@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 from cv2 import cv2
 
-from yolo_tf2.core.models import BaseModel
 from yolo_tf2.utils.common import (
     LOGGER,
     activate_gpu,
@@ -16,7 +15,7 @@ from yolo_tf2.utils.common import (
 )
 
 
-class Detector(BaseModel):
+class Detector:
     """Tool for detection on photos/videos"""
 
     def __init__(
