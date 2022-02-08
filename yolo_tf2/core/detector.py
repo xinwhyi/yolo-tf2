@@ -4,9 +4,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import numpy as np
 import tensorflow as tf
 from cv2 import cv2
+
 from yolo_tf2.core.models import BaseModel
-from yolo_tf2.utils.common import (LOGGER, activate_gpu, get_abs_path,
-                                   get_detection_data, timer, transform_images)
+from yolo_tf2.utils.common import (
+    LOGGER,
+    activate_gpu,
+    get_abs_path,
+    get_detection_data,
+    timer,
+    transform_images,
+)
 
 
 class Detector(BaseModel):
@@ -136,7 +143,6 @@ class Detector(BaseModel):
         cv2.imwrite(output_path, adjusted)
         return output_path
 
-    @timer(LOGGER)
     def predict_photos(
         self, photos, trained_weights, batch_size=32, workers=16, output_dir=None
     ):
@@ -189,7 +195,6 @@ class Detector(BaseModel):
         for saved_path in saved_paths:
             LOGGER.info(f'Saved prediction: {saved_path}')
 
-    @timer(LOGGER)
     def detect_video(
         self, video, trained_weights, codec='mp4v', display=False, output_dir=None
     ):

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from cv2 import cv2
+
 from yolo_tf2.utils.common import LOGGER, get_abs_path
 
 if sys.platform == 'darwin':
@@ -225,7 +226,7 @@ def visualization_wrapper(to_visualize):
                 return result
             visualize_k_means_output(*result)
             plt.show()
-            visualize_boxes(result[0], get_abs_path('samples', 'sample_image.png'))
+            visualize_boxes(result[0], get_abs_path('assets', 'sample_image.png'))
             plt.show()
         return result
 

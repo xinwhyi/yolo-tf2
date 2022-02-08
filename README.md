@@ -80,7 +80,7 @@
 * [Show your support](#show-your-support)
 * [Contact](#contact)
 
-![GitHub Logo](/samples/detections.png)
+![GitHub Logo](/assets/detections.png)
 
 <!-- GETTING STARTED -->
 ## **Getting started**
@@ -380,29 +380,29 @@ anchors with process visualization.
 
 * **k-means visualization:**
 
-![GitHub Logo](/samples/anchors.png)
+![GitHub Logo](/assets/anchors.png)
 
 * **Generated anchors:**
 
-![GitHub Logo](/samples/anchors_sample.png)
+![GitHub Logo](/assets/anchors_sample.png)
 
 * **Precision and recall curves:**
 
-![GitHub Logo](/samples/pr.png)
+![GitHub Logo](/assets/pr.png)
 
 * **Evaluation bar charts:**
 
-![GitHub Logo](/samples/map.png)
+![GitHub Logo](/assets/map.png)
 
 * **Actual vs. detections:**
 
-![GitHub Logo](/samples/true_false.png)
+![GitHub Logo](/assets/true_false.png)
 
 * **Augmentation visualization:**
 
 Augmentation visualization (before/after) as shown below:
 
-![GitHub Logo](/samples/aug1.png)
+![GitHub Logo](/assets/aug1.png)
 
 * **Dataset pre/post augmentation view with bounding boxes:**
 
@@ -455,7 +455,7 @@ at the end which is optional as well. Training and validation datasets
 can be evaluated separately and calculate mAP(mean average precision) as well
 as precision and recall curves for every class in the model.
 
-![GitHub Logo](/samples/eval.png)
+![GitHub Logo](/assets/eval.png)
 
 ### **labelpix support**
 

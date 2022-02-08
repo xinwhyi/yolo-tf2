@@ -1,4 +1,5 @@
 import numpy as np
+
 from yolo_tf2.utils.common import LOGGER, timer
 from yolo_tf2.utils.visual_tools import visualization_wrapper
 
@@ -32,7 +33,6 @@ def iou(relative_sizes, centroids, k):
     return result
 
 
-@timer(LOGGER)
 @visualization_wrapper
 def k_means(relative_sizes, k, distance_func=np.median, frame=None):
     """
