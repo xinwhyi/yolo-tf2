@@ -6,14 +6,7 @@ import pandas as pd
 import tensorflow as tf
 from cv2 import cv2
 
-from yolo_tf2.utils.common import (
-    LOGGER,
-    get_abs_path,
-    get_detection_data,
-    timer,
-    transform_images,
-)
-from yolo_tf2.utils.dataset import get_feature_map, read_tfr
+from yolo_tf2.utils.common import LOGGER, get_abs_path, get_detection_data, timer
 from yolo_tf2.utils.visual_tools import visualize_evaluation_stats, visualize_pr
 
 

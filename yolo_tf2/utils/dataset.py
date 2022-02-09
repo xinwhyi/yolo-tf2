@@ -85,12 +85,10 @@ def serialize_example(image_path, labels, writer):
     writer.write(example.SerializeToString())
 
 
-def create_tfrecord(output_path, labeled_examples):
-    image_groups = [group for group in labeled_examples.groupby('image')]
-    random.shuffle(image_groups)
-    total_examples = len(image_groups)
+def create_tfrecord(output_path, grouped_labels):
+    total_examples = len(grouped_labels)
     with tf.io.TFRecordWriter(output_path) as writer:
-        for i, (image_path, labels) in enumerate(image_groups):
+        for i, (image_path, labels) in enumerate(grouped_labels):
             print(f'\rWriting example: {i + 1}/{total_examples}', end='')
             serialize_example(image_path, labels, writer)
     print()
