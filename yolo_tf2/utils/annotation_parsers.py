@@ -44,7 +44,7 @@ def parse_voc_file(file_path, voc_conf):
     with open(voc_conf) as json_data:
         tags = json.load(json_data)
     tree = ElementTree.parse(file_path)
-    image_path = get_tree_item(tree, tags['tree']['path'], file_path).text
+    image_path = get_tree_item(tree, tags['tree']['filename'], file_path).text
     size_item = get_tree_item(tree, tags['size']['size_tag'], file_path)
     image_width = get_tree_item(size_item, tags['size']['width'], file_path).text
     image_height = get_tree_item(size_item, tags['size']['height'], file_path).text
