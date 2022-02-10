@@ -60,9 +60,7 @@ class Trainer(BaseModel):
             self.image_folder = get_abs_path(image_folder, verify=True)
         if not image_folder:
             self.image_folder = get_abs_path('data', 'photos', verify=True)
-        assert (
-            len((images := get_image_files(self.image_folder))) > 1
-        ), f'Empty image folder: {self.image_folder}'
+        images = get_image_files(self.image_folder)
         self.image_width, self.image_height = imagesize.get(images[0])
         self.classes_file = get_abs_path(classes_file, verify=True)
         self.class_names = [item.strip() for item in open(self.classes_file)]
@@ -106,7 +104,8 @@ class Trainer(BaseModel):
                 self.image_height,
             )
             check += 1
-        if xml_folder := configuration.get('xml_labels_folder'):
+        xml_folder = configuration.get('xml_labels_folder')
+        if xml_folder:
             if check:
                 raise ValueError(f'Got more than one configuration')
             voc_conf = configuration.get('voc_conf')
@@ -122,7 +121,8 @@ class Trainer(BaseModel):
                 index=False,
             )
             check += 1
-        if coordinate_labels := configuration.get('coordinate_labels'):
+        coordinate_labels = configuration.get('coordinate_labels')
+        if coordinate_labels:
             if check:
                 raise ValueError(f'Got more than one configuration')
             labels_frame = pd.read_csv(get_abs_path(coordinate_labels, verify=True))

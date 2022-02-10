@@ -457,10 +457,7 @@ class BaseModel(dict):
         Returns:
             None
         """
-        assert (suffix := Path(weights_file).suffix) in [
-            '.tf',
-            '.weights',
-        ], 'Invalid weights file'
+        suffix = Path(weights_file).suffix
         assert (
             self.classes == 80 if suffix == '.weights' else 1
         ), f'DarkNet model should contain 80 classes, {self.classes} is given.'
