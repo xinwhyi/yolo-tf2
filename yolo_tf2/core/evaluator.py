@@ -150,7 +150,7 @@ class Evaluator:
             and save results as csv in output folder.
         Args:
             trained_weights: Trained .tf weights or .weights file
-                (in case self.classes = 80).
+                (in case self.total_classes = 80).
             merge: If True a single file will be saved for training
                 and validation sets predictions combined.
             workers: Parallel predictions.
@@ -388,7 +388,7 @@ class Evaluator:
             combined: pandas DataFrame with True and False positives combined.
 
         Returns:
-            pandas DataFrame with statistics for all classes.
+            pandas DataFrame with statistics for all total_classes.
         """
         class_stats = []
         for class_name in self.class_names:

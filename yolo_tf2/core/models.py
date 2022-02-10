@@ -5,9 +5,8 @@ from configparser import ConfigParser
 
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
-from tensorflow.keras import Model
-from tensorflow.keras.layers import (
+from keras import Model
+from keras.layers import (
     Add,
     BatchNormalization,
     Concatenate,
@@ -19,9 +18,13 @@ from tensorflow.keras.layers import (
     UpSampling2D,
     ZeroPadding2D,
 )
-from tensorflow.keras.regularizers import l2
+from keras.regularizers import l2
 
 from yolo_tf2.utils.common import get_abs_path, get_boxes
+
+
+def mish(x):
+    return x * tf.math.tanh(tf.math.softplus(x))
 
 
 def get_nms(outputs, max_boxes, iou_threshold, score_threshold):
@@ -190,7 +193,7 @@ class YoloParser:
                 0.1, name=f'leaky_relu_{self.total_layers}'
             )(self.previous_layer)
         elif activation == 'mish':
-            self.previous_layer = tfa.activations.mish(self.previous_layer)
+            self.previous_layer = mish(self.previous_layer)
 
     def create_route(self, section):
         layers = [
@@ -232,18 +235,19 @@ class YoloParser:
         )(self.previous_layer)
 
     def create_section(self, section):
-        if section.startswith('convolutional'):
-            self.create_convolution(section)
-        elif section.startswith('route'):
-            self.create_route(section)
-        elif section.startswith('maxpool'):
-            self.create_max_pool(section)
-        elif section.startswith('shortcut'):
-            self.create_shortcut(section)
-        elif section.startswith('upsample'):
-            self.create_upsample(section)
-        elif section.startswith('yolo'):
-            self.create_output_layer()
+        match section.split('_')[0]:
+            case 'convolutional':
+                self.create_convolution(section)
+            case 'route':
+                self.create_route(section)
+            case 'maxpool':
+                self.create_max_pool(section)
+            case 'shortcut':
+                self.create_shortcut(section)
+            case 'upsample':
+                self.create_upsample(section)
+            case 'yolo':
+                self.create_output_layer()
         self.total_layers += 1
         self.model_layers.append(self.previous_layer)
 

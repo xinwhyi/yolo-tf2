@@ -1,5 +1,3 @@
-import random
-
 import tensorflow as tf
 
 
@@ -127,10 +125,10 @@ def read_tfrecord(
     masks,
     classes_delimiter='\n',
 ):
-    text_init = tf.lookup.TextFileInitializer(
+    text_initializer = tf.lookup.TextFileInitializer(
         classes_file, tf.string, 0, tf.int64, -1, delimiter=classes_delimiter
     )
-    class_table = tf.lookup.StaticHashTable(text_init, -1)
+    class_table = tf.lookup.StaticHashTable(text_initializer, -1)
     files = tf.data.Dataset.list_files(fp)
     dataset = files.flat_map(tf.data.TFRecordDataset)
     feature_map = {

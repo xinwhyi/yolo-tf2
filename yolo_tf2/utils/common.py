@@ -9,13 +9,7 @@ from xml.etree.ElementTree import SubElement
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import tensorflow_addons as tfa
 from lxml import etree
-from tensorflow.keras.layers import Layer
-from tensorflow.python.keras.utils import tf_utils
-from tensorflow.python.util.tf_export import keras_export
-
-tfa.options.TF_ADDONS_PY_OPS = True
 
 
 def get_logger(log_file=None):
@@ -66,28 +60,6 @@ def timer(logger):
         return wrapper
 
     return timed
-
-
-def ratios_to_coordinates(bx, by, bw, bh, width, height):
-    """
-    Convert relative coordinates to actual coordinates.
-    Args:
-        bx: Relative center x coordinate.
-        by: Relative center y coordinate.
-        bw: Relative box width.
-        bh: Relative box height.
-        width: Image batch width.
-        height: Image batch height.
-
-    Return:
-        x1: x coordinate.
-        y1: y coordinate.
-        x2: x1 + Bounding box width.
-        y2: y1 + Bounding box height.
-    """
-    w, h = bw * width, bh * height
-    x, y = bx * width + (w / 2), by * height + (h / 2)
-    return x, y, x + w, y + h
 
 
 def get_boxes(pred, anchors, classes):
@@ -177,101 +149,6 @@ def get_detection_data(image, image_name, outputs, class_names):
         ]
     ]
     return data
-
-
-def activate_gpu():
-    """
-    Check for GPU existence and if found, activate.
-
-    Returns:
-        None
-    """
-    physical_devices = tf.config.experimental.list_physical_devices('GPU')
-    if len(physical_devices) > 0:
-        tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        LOGGER.info('GPU activated')
-
-
-def calculate_ratios(x1, y1, x2, y2, width, height):
-    """
-    Calculate relative object ratios in the labeled image.
-    Args:
-        x1: Start x coordinate.
-        y1: Start y coordinate.
-        x2: End x coordinate.
-        y2: End y coordinate.
-        width: Bounding box width.
-        height: Bounding box height.
-
-    Return:
-        bx: Relative center x coordinate.
-        by: Relative center y coordinate.
-        bw: Relative box width.
-        bh: Relative box height.
-    """
-    box_width = abs(x2 - x1)
-    box_height = abs(y2 - y1)
-    bx = 1 - ((width - min(x1, x2) + (box_width / 2)) / width)
-    by = 1 - ((height - min(y1, y2) + (box_height / 2)) / height)
-    bw = box_width / width
-    bh = box_height / height
-    return bx, by, bw, bh
-
-
-def calculate_display_data(prediction_file, classes_file, img_width, img_height, out):
-    """
-    Convert coordinates to relative labels.
-
-    prediction_file: csv file containing label coordinates.
-    classes_file: .txt file containing object classes.
-    img_width: Image width.
-    img_height: Image height.
-    out: output path.
-
-    Returns:
-         None
-    """
-    preds = pd.read_csv(prediction_file)
-    rows = []
-    indices = {
-        item: ind
-        for ind, item in enumerate([item.strip() for item in open(classes_file)])
-    }
-    for ind, item in preds.iterrows():
-        img, obj, xx1, yy1, xx2, yy2, score, imgw, imgh, dk = item.values
-        bxx, byy, bww, bhh = calculate_ratios(xx1, yy1, xx2, yy2, img_width, img_height)
-        rows.append([img, obj, indices[obj], bxx, byy, bww, bhh])
-    fr = pd.DataFrame(
-        rows,
-        columns=[
-            'image',
-            'object_name',
-            'object_index',
-            'bx',
-            'by',
-            'bw',
-            'bh',
-        ],
-    )
-    fr.to_csv(out, index=False)
-
-
-@keras_export('keras.layers.Mish')
-class Mish(Layer):
-    """
-    Mish new activation function
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.supports_masking = True
-
-    def call(self, inputs, *args, **kwargs):
-        return tfa.activations.mish(inputs)
-
-    @tf_utils.shape_type_conversion
-    def compute_output_shape(self, input_shape):
-        return input_shape
 
 
 def get_abs_path(
