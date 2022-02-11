@@ -1,10 +1,7 @@
-import random
-
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.losses import binary_crossentropy, sparse_categorical_crossentropy
+from ml_utils.tensorflow.training import Trainer
 
 from yolo_tf2.core.models import YoloParser
 from yolo_tf2.utils.common import get_boxes
@@ -33,7 +30,7 @@ def broadcast_iou(box_1, box_2):
     return int_area / (box_1_area + box_2_area - int_area)
 
 
-def calculate_loss(anchors, total_classes, ignore_thresh):
+def calculate_loss(anchors, total_classes, iou_threshold):
     def yolo_loss(y_true, y_pred):
         pred_box, pred_obj, pred_class, pred_xywh = get_boxes(
             y_pred, anchors, total_classes
@@ -59,7 +56,7 @@ def calculate_loss(anchors, total_classes, ignore_thresh):
             (pred_box, true_box, obj_mask),
             fn_output_signature=tf.float32,
         )
-        ignore_mask = tf.cast(best_iou < ignore_thresh, tf.float32)
+        ignore_mask = tf.cast(best_iou < iou_threshold, tf.float32)
         xy_loss = (
             obj_mask
             * box_loss_scale
@@ -84,9 +81,70 @@ def calculate_loss(anchors, total_classes, ignore_thresh):
     return yolo_loss
 
 
-def train():
-    input_shape = 416, 416, 3
-    anchors = np.array(
+class YoloTrainer(Trainer):
+    def __init__(
+        self,
+        input_shape,
+        batch_size,
+        classes_file,
+        model_configuration,
+        anchors,
+        masks,
+        max_boxes,
+        iou_threshold=0.5,
+        score_threshold=0.5,
+        **kwargs,
+    ):
+        super(YoloTrainer, self).__init__(input_shape, batch_size, **kwargs)
+        self.classes_file = classes_file
+        self.classes = [c.strip() for c in open(classes_file)]
+        self.model_configuration = model_configuration
+        self.anchors = anchors
+        self.masks = masks
+        self.iou_threshold = iou_threshold
+        self.score_threshold = score_threshold
+        self.max_boxes = max_boxes
+
+    def write_tfrecord(self, fp, data, shards):
+        create_tfrecord(fp, data, shards)
+
+    def read_tfrecord(self, fp):
+        return read_tfrecord(
+            fp,
+            self.classes_file,
+            self.input_shape[:-1],
+            self.max_boxes,
+            self.shuffle_buffer_size,
+            self.batch_size,
+            self.anchors,
+            self.masks,
+        )
+
+    def calculate_loss(self):
+        return [
+            calculate_loss(self.anchors[mask], len(self.classes), self.iou_threshold)
+            for mask in self.masks
+        ]
+
+    def create_model(self):
+        parser = YoloParser(len(self.classes))
+        return parser.from_cfg(
+            self.model_configuration,
+            self.input_shape,
+            anchors=self.anchors,
+            masks=self.masks,
+            max_boxes=self.max_boxes,
+            iou_threshold=self.iou_threshold,
+            score_threshold=self.score_threshold,
+        )
+
+
+if __name__ == '__main__':
+    from yolo_tf2.utils.common import parse_voc
+
+    iss = 416, 416, 3
+    bs = 8
+    anc = np.array(
         [
             (10, 13),
             (16, 30),
@@ -98,59 +156,30 @@ def train():
             (156, 198),
             (373, 326),
         ]
-    ) / np.array(input_shape[:-1])
-    masks = np.array([[6, 7, 8], [3, 4, 5], [0, 1, 2]])
-    classes_file = '/content/yolo-data/classes.txt'
-    train_tfrecord_path = '/content/yolo-data/dummy-train-dataset.tfrecord'
-    valid_tfrecord_path = '/content/yolo-data/dummy-valid-dataset.tfrecord'
-    classes = [c.strip() for c in open(classes_file)]
-    shuffle_buffer_size = 512
-    batch_size = 8
-    parser = YoloParser(len(classes))
-    model = parser.from_cfg(
-        '/content/code/yolo-tf2/yolo_tf2/config/yolo4.cfg',
-        input_shape,
-        anchors=anchors,
-        masks=masks,
-    )
-    labels = pd.read_csv('/content/yolo-data/bh_labels.csv')
-    groups = [*labels.groupby('image')]
-    random.shuffle(groups)
-    max_boxes = max(i[1].shape[0] for i in groups)
-    sep_idx = int(0.9 * len(groups))
-    train_groups = groups[:sep_idx]
-    valid_groups = groups[sep_idx:]
-    create_tfrecord(train_tfrecord_path, train_groups)
-    create_tfrecord(valid_tfrecord_path, valid_groups)
-    training_dataset = read_tfrecord(
-        train_tfrecord_path,
-        classes_file,
-        input_shape[:-1],
-        max_boxes,
-        shuffle_buffer_size,
-        batch_size,
-        anchors,
-        masks,
-    )
-    valid_dataset = read_tfrecord(
-        valid_tfrecord_path,
-        classes_file,
-        input_shape[:-1],
-        max_boxes,
-        shuffle_buffer_size,
-        batch_size,
-        anchors,
-        masks,
-    )
-    loss = [calculate_loss(anchors[mask], len(classes), 0.5) for mask in masks]
-    model.compile('adam', loss=loss)
-    callbacks = [
-        ModelCheckpoint(
-            '/content/drive/MyDrive/yolo-new.tf',
-            verbose=True,
-            save_weights_only=True,
-            save_best_only=True,
-        ),
-        EarlyStopping(patience=3, verbose=True),
+    ) / np.array(iss[:-1])
+    msk = np.array([[6, 7, 8], [3, 4, 5], [0, 1, 2]])
+    # lbl = [
+    #     *pd.read_csv('/Users/emadboctor/Desktop/yolo-data/bh_labels.csv').groupby(
+    #         'image'
+    #     )
+    # ]
+    lbl = [
+        *parse_voc(
+            '/Users/emadboctor/Desktop/yolo-data/VOCdevkit/VOC2012/Annotations',
+            '/Users/emadboctor/Desktop/yolo-data/VOCdevkit/VOC2012/JPEGImages',
+        ).groupby('image')
     ]
-    model.fit(training_dataset, validation_data=valid_dataset, callbacks=callbacks)
+    mb = max(i[1].shape[0] for i in lbl)
+    t = YoloTrainer(
+        iss,
+        bs,
+        '/Users/emadboctor/Desktop/yolo-data/voc-classes.txt',
+        '/Users/emadboctor/Desktop/code/yolo-tf2/yolo_tf2/config/yolo3.cfg',
+        anc,
+        msk,
+        mb,
+        labeled_examples=lbl,
+        dataset_name='voc-dataset-new',
+        output_folder='/Users/emadboctor/Desktop/yolo-data',
+    )
+    t.fit()

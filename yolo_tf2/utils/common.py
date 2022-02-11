@@ -1,15 +1,13 @@
 import logging
-import os
+import xml.etree.ElementTree as Et
 from logging import handlers
 from pathlib import Path
 from time import perf_counter
-from xml.etree import ElementTree
-from xml.etree.ElementTree import SubElement
 
+import imagesize
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from lxml import etree
 
 
 def get_logger(log_file=None):
@@ -81,33 +79,6 @@ def get_boxes(pred, anchors, classes):
     return bbox, object_probability, class_probabilities, pred_box
 
 
-def add_xml_path(xml_file, path):
-    """
-    Add a path element to the xml file and save.
-    Args:
-        xml_file: .xml file path.
-        path: str, path to add.
-
-    Returns:
-        None
-    """
-    tree = ElementTree.parse(xml_file)
-    top = tree.getroot()
-    folder_tag = tree.find('folder')
-    folder_tag.text = path
-    file_name_tag = tree.find('filename')
-    path_tag = SubElement(top, 'path')
-    path_tag.text = get_abs_path(folder_tag.text, file_name_tag.text)
-    rough_string = ElementTree.tostring(top, 'utf8')
-    root = etree.fromstring(rough_string)
-    pretty = etree.tostring(root, pretty_print=True, encoding='utf-8').replace(
-        '  '.encode(), '\t'.encode()
-    )
-    os.remove(xml_file)
-    with open(xml_file, 'wb') as output:
-        output.write(pretty)
-
-
 def get_detection_data(image, image_name, outputs, class_names):
     """
     Organize predictions of a single image into a pandas DataFrame.
@@ -151,32 +122,26 @@ def get_detection_data(image, image_name, outputs, class_names):
     return data
 
 
-def get_abs_path(
-    *args, verify=False, verify_parents=False, create_parents=False, create=False
-):
-    fp = Path(*args).absolute().resolve()
-    posix_path = fp.as_posix()
-    if create_parents:
-        os.makedirs(fp.parent.as_posix(), exist_ok=True)
-    if create:
-        os.makedirs(fp.as_posix(), exist_ok=True)
-    if verify:
-        assert fp.exists(), f'Path does not exist {posix_path}'
-    if verify_parents:
-        parent = fp.parent
-        assert parent.exists(), f'Folder not found {parent.as_posix()}'
-    return posix_path
-
-
-def get_image_files(folder_path):
-    folder_path = get_abs_path(folder_path, verify=True)
-    image_files = [
-        get_abs_path(folder_path, filename)
-        for filename in os.listdir(folder_path)
-        if Path(filename).suffix in ['.png', '.jpg', '.jpeg', '.bmp']
-    ]
-    if image_files:
-        return image_files
-    issue = f'No image files found in {folder_path}'
-    LOGGER.error(issue)
-    raise FileNotFoundError(issue)
+def parse_voc(label_dir, image_dir):
+    label_dir = Path(label_dir)
+    image_dir = Path(image_dir)
+    labels = []
+    for fp in label_dir.glob('*.xml'):
+        label = {}
+        root = Et.parse(fp).getroot()
+        image_path = label['image'] = (
+            image_dir / root.find('filename').text
+        ).as_posix()
+        w, h = imagesize.get(image_path)
+        for tag in root.findall('object'):
+            label['object_name'] = tag.find('name').text
+            label['x0'] = float(tag.find('bndbox/xmin').text) / w
+            label['y0'] = float(tag.find('bndbox/ymin').text) / h
+            label['x1'] = float(tag.find('bndbox/xmax').text) / w
+            label['y1'] = float(tag.find('bndbox/ymax').text) / h
+        labels.append(label)
+    labels = pd.DataFrame(labels)
+    for i, object_name in enumerate(labels['object_name'].drop_duplicates().values):
+        labels.loc[labels['object_name'] == object_name, 'object_index'] = int(i)
+    labels['object_index'] = labels['object_index'].astype('int32')
+    return labels

@@ -20,7 +20,7 @@ from keras.layers import (
 )
 from keras.regularizers import l2
 
-from yolo_tf2.utils.common import get_abs_path, get_boxes
+from yolo_tf2.utils.common import get_boxes
 
 
 def mish(x):
