@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 from ml_utils.python.generic import split_filename
 
@@ -84,7 +86,9 @@ def serialize_example(image_path, labels, writer):
     writer.write(example.SerializeToString())
 
 
-def create_tfrecord(output_path, grouped_labels, shards):
+def create_tfrecord(
+    output_path, grouped_labels, shards, delete_images=False, verbose=True
+):
     filenames = split_filename(output_path, shards)
     total_labels = len(grouped_labels)
     step = total_labels // shards
@@ -93,9 +97,13 @@ def create_tfrecord(output_path, grouped_labels, shards):
         total_examples = len(grouped_labels)
         with tf.io.TFRecordWriter(filename) as writer:
             for i, (image_path, labels) in enumerate(chunk, idx):
-                print(f'\rWriting example: {i + 1}/{total_examples}', end='')
+                if verbose:
+                    print(f'\rWriting example: {i + 1}/{total_examples}', end='')
                 serialize_example(image_path, labels, writer)
-        print()
+                if delete_images:
+                    os.remove(image_path)
+        if verbose:
+            print()
 
 
 def read_example(

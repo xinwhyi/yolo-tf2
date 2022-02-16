@@ -106,7 +106,7 @@ class YoloTrainer(Trainer):
         self.max_boxes = max_boxes
 
     def write_tfrecord(self, fp, data, shards):
-        create_tfrecord(fp, data, shards)
+        create_tfrecord(fp, data, shards, self.delete_tfrecord_images, self.verbose)
 
     def read_tfrecord(self, fp):
         return read_tfrecord(
