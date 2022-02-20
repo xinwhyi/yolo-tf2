@@ -1,6 +1,6 @@
 import numpy as np
 
-from yolo_tf2.utils.common import LOGGER, timer
+from yolo_tf2.utils.common import LOGGER
 from yolo_tf2.utils.visual_tools import visualization_wrapper
 
 

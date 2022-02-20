@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from cv2 import cv2
-
-from yolo_tf2.utils.common import LOGGER, get_abs_path, get_detection_data, timer
-from yolo_tf2.utils.visual_tools import visualize_evaluation_stats, visualize_pr
+from yolo_tf2.utils.common import (LOGGER, get_abs_path, get_detection_data,
+                                   timer)
+from yolo_tf2.utils.visual_tools import (visualize_evaluation_stats,
+                                         visualize_pr)
 
 
 class Evaluator:

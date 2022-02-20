@@ -5,7 +5,6 @@ from pathlib import Path
 from time import perf_counter
 
 import imagesize
-import numpy as np
 import pandas as pd
 import tensorflow as tf
 
@@ -77,49 +76,6 @@ def get_boxes(pred, anchors, classes):
     box_x2y2 = box_xy + box_wh / 2
     bbox = tf.concat([box_x1y1, box_x2y2], axis=-1)
     return bbox, object_probability, class_probabilities, pred_box
-
-
-def get_detection_data(image, image_name, outputs, class_names):
-    """
-    Organize predictions of a single image into a pandas DataFrame.
-    Args:
-        image: Image as a numpy array.
-        image_name: str, name to write in the image column.
-        outputs: Outputs from inference_model.predict()
-        class_names: A list of object class names.
-
-    Returns:
-        data: pandas DataFrame with the detections.
-    """
-    nums = outputs[-1]
-    boxes, scores, classes = 3 * [None]
-    if isinstance(outputs[0], np.ndarray):
-        boxes, scores, classes = [item[0][: int(nums)] for item in outputs[:-1]]
-    if not isinstance(outputs[0], np.ndarray):
-        boxes, scores, classes = [item[0][: int(nums)].numpy() for item in outputs[:-1]]
-    w, h = np.flip(image.shape[0:2])
-    data = pd.DataFrame(boxes, columns=['x1', 'y1', 'x2', 'y2'])
-    data[['x1', 'x2']] = (data[['x1', 'x2']] * w).astype('int64')
-    data[['y1', 'y2']] = (data[['y1', 'y2']] * h).astype('int64')
-    data['object_name'] = np.array(class_names)[classes.astype('int64')]
-    data['image'] = image_name
-    data['score'] = scores
-    data['img_width'] = w
-    data['img_height'] = h
-    data = data[
-        [
-            'image',
-            'object_name',
-            'x1',
-            'y1',
-            'x2',
-            'y2',
-            'score',
-            'img_width',
-            'img_height',
-        ]
-    ]
-    return data
 
 
 def parse_voc(label_dir, image_dir):

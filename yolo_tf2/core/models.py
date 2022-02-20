@@ -6,20 +6,10 @@ from configparser import ConfigParser
 import numpy as np
 import tensorflow as tf
 from keras import Model
-from keras.layers import (
-    Add,
-    BatchNormalization,
-    Concatenate,
-    Conv2D,
-    Input,
-    Lambda,
-    LeakyReLU,
-    MaxPooling2D,
-    UpSampling2D,
-    ZeroPadding2D,
-)
+from keras.layers import (Add, BatchNormalization, Concatenate, Conv2D, Input,
+                          Lambda, LeakyReLU, MaxPooling2D, UpSampling2D,
+                          ZeroPadding2D)
 from keras.regularizers import l2
-
 from yolo_tf2.utils.common import get_boxes
 
 
@@ -64,7 +54,7 @@ def get_nms(outputs, max_boxes, iou_threshold, score_threshold):
 
 
 def load_darknet_weights(model, fp):
-    with open(get_abs_path(fp, verify=True), 'rb') as weights_data:
+    with open(fp, 'rb') as weights_data:
         major, minor, revision, seen, _ = np.fromfile(
             weights_data, dtype=np.int32, count=5
         )

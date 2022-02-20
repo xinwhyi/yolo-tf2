@@ -1,8 +1,6 @@
-import numpy as np
 import tensorflow as tf
 from keras.losses import binary_crossentropy, sparse_categorical_crossentropy
 from ml_utils.tensorflow.training import Trainer
-
 from yolo_tf2.core.models import YoloParser
 from yolo_tf2.utils.common import get_boxes
 from yolo_tf2.utils.dataset import create_tfrecord, read_tfrecord
@@ -119,6 +117,14 @@ class YoloTrainer(Trainer):
             self.anchors,
             self.masks,
         )
+        # dataset = iter(dataset)
+        # while True:
+        #     try:
+        #         yield next(dataset)
+        #     except tf.errors.InvalidArgumentError:
+        #         pass
+        #     except StopIteration:
+        #         return
 
     def calculate_loss(self):
         return [
@@ -137,49 +143,3 @@ class YoloTrainer(Trainer):
             iou_threshold=self.iou_threshold,
             score_threshold=self.score_threshold,
         )
-
-
-if __name__ == '__main__':
-    from yolo_tf2.utils.common import parse_voc
-
-    iss = 416, 416, 3
-    bs = 8
-    anc = np.array(
-        [
-            (10, 13),
-            (16, 30),
-            (33, 23),
-            (30, 61),
-            (62, 45),
-            (59, 119),
-            (116, 90),
-            (156, 198),
-            (373, 326),
-        ]
-    ) / np.array(iss[:-1])
-    msk = np.array([[6, 7, 8], [3, 4, 5], [0, 1, 2]])
-    # lbl = [
-    #     *pd.read_csv('/Users/emadboctor/Desktop/yolo-data/bh_labels.csv').groupby(
-    #         'image'
-    #     )
-    # ]
-    lbl = [
-        *parse_voc(
-            '/Users/emadboctor/Desktop/yolo-data/VOCdevkit/VOC2012/Annotations',
-            '/Users/emadboctor/Desktop/yolo-data/VOCdevkit/VOC2012/JPEGImages',
-        ).groupby('image')
-    ]
-    mb = max(i[1].shape[0] for i in lbl)
-    t = YoloTrainer(
-        iss,
-        bs,
-        '/Users/emadboctor/Desktop/yolo-data/voc-classes.txt',
-        '/Users/emadboctor/Desktop/code/yolo-tf2/yolo_tf2/config/yolo3.cfg',
-        anc,
-        msk,
-        mb,
-        labeled_examples=lbl,
-        dataset_name='voc-dataset-new',
-        output_folder='/Users/emadboctor/Desktop/yolo-data',
-    )
-    t.fit()

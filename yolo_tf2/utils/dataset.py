@@ -92,9 +92,9 @@ def create_tfrecord(
     filenames = split_filename(output_path, shards)
     total_labels = len(grouped_labels)
     step = total_labels // shards
+    total_examples = len(grouped_labels)
     for (filename, idx) in zip(filenames, range(0, total_labels, step)):
         chunk = grouped_labels[idx : idx + step]
-        total_examples = len(grouped_labels)
         with tf.io.TFRecordWriter(filename) as writer:
             for i, (image_path, labels) in enumerate(chunk, idx):
                 if verbose:

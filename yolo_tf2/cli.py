@@ -2,14 +2,8 @@ import argparse
 import sys
 
 from yolo_tf2.config.cli_args import DETECTION, EVALUATION, GENERAL, TRAINING
-from yolo_tf2.utils.cli_utils import (
-    add_args,
-    detect,
-    display_commands,
-    display_section,
-    evaluate,
-    train,
-)
+from yolo_tf2.utils.cli_utils import (add_args, detect, display_commands,
+                                      display_section, evaluate, train)
 
 
 def execute():

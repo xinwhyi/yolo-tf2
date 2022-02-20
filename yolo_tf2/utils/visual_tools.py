@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from cv2 import cv2
-
 from yolo_tf2.utils.common import LOGGER, get_abs_path
 
 if sys.platform == 'darwin':
