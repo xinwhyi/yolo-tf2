@@ -137,9 +137,4 @@ class YoloTrainer(Trainer):
         return parser.from_cfg(
             self.model_configuration,
             self.input_shape,
-            anchors=self.anchors,
-            masks=self.masks,
-            max_boxes=self.max_boxes,
-            iou_threshold=self.iou_threshold,
-            score_threshold=self.score_threshold,
         )

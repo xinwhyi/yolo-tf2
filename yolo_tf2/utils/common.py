@@ -59,10 +59,10 @@ def timer(logger):
     return timed
 
 
-def get_boxes(pred, anchors, classes):
+def get_boxes(pred, anchors, total_classes):
     grid_size = tf.shape(pred)[1]
     box_xy, box_wh, object_probability, class_probabilities = tf.split(
-        pred, (2, 2, 1, classes), axis=-1
+        pred, (2, 2, 1, total_classes), axis=-1
     )
     box_xy = tf.sigmoid(box_xy)
     object_probability = tf.sigmoid(object_probability)

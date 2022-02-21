@@ -10,47 +10,10 @@ from keras.layers import (Add, BatchNormalization, Concatenate, Conv2D, Input,
                           Lambda, LeakyReLU, MaxPooling2D, UpSampling2D,
                           ZeroPadding2D)
 from keras.regularizers import l2
-from yolo_tf2.utils.common import get_boxes
 
 
 def mish(x):
     return x * tf.math.tanh(tf.math.softplus(x))
-
-
-def get_nms(outputs, max_boxes, iou_threshold, score_threshold):
-    boxes, conf, type_ = [], [], []
-    for output in outputs:
-        boxes.append(
-            tf.reshape(
-                output[0],
-                (tf.shape(output[0])[0], -1, tf.shape(output[0])[-1]),
-            )
-        )
-        conf.append(
-            tf.reshape(
-                output[1],
-                (tf.shape(output[1])[0], -1, tf.shape(output[1])[-1]),
-            )
-        )
-        type_.append(
-            tf.reshape(
-                output[2],
-                (tf.shape(output[2])[0], -1, tf.shape(output[2])[-1]),
-            )
-        )
-    bbox = tf.concat(boxes, axis=1)
-    confidence = tf.concat(conf, axis=1)
-    class_probabilities = tf.concat(type_, axis=1)
-    scores = confidence * class_probabilities
-    (boxes, scores, classes, valid_detections,) = tf.image.combined_non_max_suppression(
-        boxes=tf.reshape(bbox, (tf.shape(bbox)[0], -1, 1, 4)),
-        scores=tf.reshape(scores, (tf.shape(scores)[0], -1, tf.shape(scores)[-1])),
-        max_output_size_per_class=max_boxes,
-        max_total_size=max_boxes,
-        iou_threshold=iou_threshold,
-        score_threshold=score_threshold,
-    )
-    return boxes, scores, classes, valid_detections
 
 
 def load_darknet_weights(model, fp):
@@ -241,37 +204,14 @@ class YoloParser:
         self.total_layers += 1
         self.model_layers.append(self.previous_layer)
 
-    def create_inference(self, output, anchors, masks):
-        return Lambda(lambda x: get_boxes(x, anchors[masks], self.total_classes))(
-            output
-        )
-
     def from_cfg(
         self,
         fp,
         input_shape,
-        inference=False,
-        anchors=None,
-        masks=None,
-        max_boxes=100,
-        iou_threshold=0.5,
-        score_threshold=0.5,
     ):
         self.previous_layer = x0 = Input(input_shape)
         self.create_cfg_parser(fp)
         for section in self.cfg_parser.sections():
             self.create_section(section)
         output_layers = [layer for layer in self.model_layers if 'lambda' in layer.name]
-        if not inference:
-            return Model(x0, output_layers)
-        assert (
-            anchors is not None and masks is not None
-        ), '`anchors` and `masks` should be specified'
-        output_0, output_1, output_2 = output_layers
-        boxes_0 = self.create_inference(output_0, anchors, masks[0])
-        boxes_1 = self.create_inference(output_1, anchors, masks[1])
-        boxes_2 = self.create_inference(output_2, anchors, masks[2])
-        outputs = Lambda(
-            lambda x: get_nms(x, max_boxes, iou_threshold, score_threshold)
-        )([boxes_0[:3], boxes_1[:3], boxes_2[:3]])
-        return Model(x0, outputs)
+        return Model(x0, output_layers)
