@@ -1,7 +1,7 @@
+import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from cv2 import cv2
 from yolo_tf2.utils.common import get_boxes
 
 
@@ -100,7 +100,7 @@ def detect_images(
     return pd.concat(outputs)
 
 
-def draw_boxes(image, colors, detections, font_scale=0.6):
+def draw_boxes(image, colors, detections, show_scores=True, font_scale=0.6):
     for i, row in detections.iterrows():
         x0 = int(row['x0'] * image.shape[1])
         y0 = int(row['y0'] * image.shape[0])
@@ -114,14 +114,15 @@ def draw_boxes(image, colors, detections, font_scale=0.6):
             color,
             1,
         )
-        cv2.putText(
-            image,
-            f"{row['object_name']}-{round(row['score'], 2)}",
-            (x0, y0 - 10),
-            cv2.FONT_HERSHEY_COMPLEX_SMALL,
-            font_scale,
-            color,
-        )
+        if show_scores:
+            cv2.putText(
+                image,
+                f"{row['object_name']}-{round(row['score'], 2)}",
+                (x0, y0 - 10),
+                cv2.FONT_HERSHEY_COMPLEX_SMALL,
+                font_scale,
+                color,
+            )
 
 
 def detect_vid(

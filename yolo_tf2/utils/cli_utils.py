@@ -2,7 +2,7 @@ import pandas as pd
 import yolo_tf2
 from yolo_tf2.config.augmentation import AUGMENTATION_PRESETS
 from yolo_tf2.config.cli_args import DETECTION, EVALUATION, GENERAL, TRAINING
-from yolo_tf2.core.evaluator import Evaluator
+from yolo_tf2.core.evaluation import Evaluator
 from yolo_tf2.core.inference import Detector
 from yolo_tf2.core.training import Trainer
 from yolo_tf2.utils.common import get_abs_path, get_image_files
@@ -177,7 +177,7 @@ def evaluate(parser):
         'train_tfrecord',
         'valid_tfrecord',
         'predicted_data',
-        'actual_data',
+        'actual',
     )
     cli_args = add_all_args(parser, EVALUATION, *required_args)
     evaluator = Evaluator(
