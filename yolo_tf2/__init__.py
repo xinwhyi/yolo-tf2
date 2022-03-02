@@ -1,6 +1,6 @@
 import sys
 
-__author__ = 'alternativebug'
+__author__ = 'unsignedrant'
 __license__ = 'MIT'
 __version__ = 1.5
 
@@ -20,7 +20,7 @@ dependencies = (
     'imagecorruptions',
     'configparser',
     'cv2',
-    'PyQt5',
+    'pyqt5',
 )
 missing_dependencies = []
 
