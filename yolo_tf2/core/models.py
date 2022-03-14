@@ -13,10 +13,30 @@ from keras.regularizers import l2
 
 
 def mish(x):
+    """
+    Mish activation function.
+    Args:
+        x: Tensor upon which mish is calculated.
+
+    Returns:
+        Mish activation result.
+    """
     return x * tf.math.tanh(tf.math.softplus(x))
 
 
 def load_darknet_weights(model, fp):
+    """
+    Load DarkNet .weights file to `tf.keras.Model`.
+    Args:
+        model: `tf.keras.Model`
+        fp: Path to .weights file to load.
+
+    Returns:
+        None
+    Raises:
+        AssertionError: If weights are incompatible with the model hence,
+            not fully loaded.
+    """
     with open(fp, 'rb') as weights_data:
         major, minor, revision, seen, _ = np.fromfile(
             weights_data, dtype=np.int32, count=5
@@ -84,10 +104,19 @@ def load_darknet_weights(model, fp):
 
 
 class YoloParser:
+    """
+    Tool to convert DarkNet .cfg file to `tf.keras.Model`.
+    """
+
     def __init__(
         self,
         total_classes,
     ):
+        """
+        Initialize parser.
+        Args:
+            total_classes: Total object classes in the training dataset.
+        """
         self.total_classes = total_classes
         self.model_layers = []
         self.previous_layer = None
@@ -95,6 +124,14 @@ class YoloParser:
         self.total_layers = 0
 
     def create_cfg_parser(self, fp):
+        """
+        Parse .cfg file and create parser.
+        Args:
+            fp: Path to .cfg DarkNet file.
+
+        Returns:
+            The result of `configparser.RawConfigParser.read_file`
+        """
         section_counters = defaultdict(int)
         output_stream = io.StringIO()
         for line in open(fp):
@@ -109,12 +146,29 @@ class YoloParser:
         self.cfg_parser.read_file(output_stream)
 
     def parse_value(self, section, name):
+        """
+        Parse numeric/non-numeric value.
+        Args:
+            section: .cfg section name to look for in `self.cfg_parser`.
+            name: Name of the value to look for in the given section.
+
+        Returns:
+            Value as int/str.
+        """
         value = self.cfg_parser[section][name]
         if value.strip('+-').isnumeric():
             return int(value)
         return value
 
     def create_convolution(self, section):
+        """
+        Create convolution layer.
+        Args:
+            section: .cfg section name to look for in `self.cfg_parser`.
+
+        Returns:
+            None
+        """
         filters = self.parse_value(section, 'filters')
         kernel_size = self.parse_value(section, 'size')
         stride = self.parse_value(section, 'stride')
@@ -149,6 +203,14 @@ class YoloParser:
             self.previous_layer = mish(self.previous_layer)
 
     def create_route(self, section):
+        """
+        Create route layer.
+        Args:
+            section: .cfg section name to look for in `self.cfg_parser`.
+
+        Returns:
+            None
+        """
         layers = [
             self.model_layers[int(i)]
             for i in self.cfg_parser[section]['layers'].split(',')
@@ -161,6 +223,14 @@ class YoloParser:
             self.previous_layer = layers[0]
 
     def create_max_pool(self, section):
+        """
+        Create max pooling layer.
+        Args:
+            section: .cfg section name to look for in `self.cfg_parser`.
+
+        Returns:
+            None
+        """
         size = self.parse_value(section, 'size')
         stride = self.parse_value(section, 'stride')
         self.previous_layer = MaxPooling2D(
@@ -171,23 +241,53 @@ class YoloParser:
         )(self.previous_layer)
 
     def create_shortcut(self, section):
+        """
+        Create shortcut layer.
+        Args:
+            section: .cfg section name to look for in `self.cfg_parser`.
+
+        Returns:
+            None
+        """
         self.previous_layer = Add(name=f'add_{self.total_layers}')(
             [self.model_layers[self.parse_value(section, 'from')], self.previous_layer]
         )
 
     def create_upsample(self, section):
+        """
+        Create up sample layer.
+        Args:
+            section: .cfg section name to look for in `self.cfg_parser`.
+
+        Returns:
+            None
+        """
         stride = self.parse_value(section, 'stride')
         self.previous_layer = UpSampling2D(
             stride, name=f'up_sampling2d_{self.total_layers}'
         )(self.previous_layer)
 
     def create_output_layer(self):
+        """
+        Create output layer.
+        Returns:
+            None
+        """
         self.previous_layer = Lambda(
             lambda x: tf.reshape(x, (-1, *x.shape[1:3], 3, self.total_classes + 5)),
             name=f'lambda_{self.total_layers}',
         )(self.previous_layer)
 
     def create_section(self, section):
+        """
+        Create a model layer given a section name, and add layer
+        to `self.model_layers`.
+        Args:
+            section: .cfg section name to look for in `self.cfg_parser`.
+
+        Returns:
+            None
+        """
         match section.split('_')[0]:
             case 'convolutional':
                 self.create_convolution(section)
@@ -209,6 +309,15 @@ class YoloParser:
         fp,
         input_shape,
     ):
+        """
+        Create `tf.keras.Model` from .cfg file.
+        Args:
+            fp: Path to .cfg DarkNet file.
+            input_shape: Input shape passed to `keras.engine.input_layer.Input`
+
+        Returns:
+            Resulting `tf.keras.Model`.
+        """
         self.previous_layer = x0 = Input(input_shape)
         self.create_cfg_parser(fp)
         for section in self.cfg_parser.sections():

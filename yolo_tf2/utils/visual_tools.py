@@ -82,7 +82,7 @@ def visualize_k_means_output(centroids, frame, save_result=True):
     save_fig(title, save_result)
 
 
-def visualize_boxes(relative_anchors, sample_image=None, save_result=True):
+def visualize_boxes(relative_anchors, sample_image, save_result=True):
     """
     Visualize anchor boxes output of k-means.
     Args:
@@ -97,8 +97,6 @@ def visualize_boxes(relative_anchors, sample_image=None, save_result=True):
     if os.path.exists(get_abs_path('output', 'plots', f'{title}.png')):
         return
     img = cv2.imread(get_abs_path(sample_image))
-    if img is None:
-        img = np.ones * 255
     width, height = imagesize.get(sample_image)
     center = int(width / 2), int(height / 2)
     for relative_w, relative_h in relative_anchors:

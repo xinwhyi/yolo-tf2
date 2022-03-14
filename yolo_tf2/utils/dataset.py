@@ -4,40 +4,45 @@ import tensorflow as tf
 from ml_utils.python.generic import split_filename
 
 
-def transform_images(x, image_shape):
-    x = tf.image.resize(x, image_shape)
-    return x / 255
-
-
-@tf.function
-def transform_targets_for_output(y_true, grid_size, anchor_indices):
-    n = tf.shape(y_true)[0]
+def transform_label(y, grid_size, anchor_indices):
+    n = tf.shape(y)[0]
     y_true_out = tf.zeros((n, grid_size, grid_size, tf.shape(anchor_indices)[0], 6))
     anchor_indices = tf.cast(anchor_indices, tf.int32)
     indexes = tf.TensorArray(tf.int32, 1, dynamic_size=True)
     updates = tf.TensorArray(tf.float32, 1, dynamic_size=True)
     idx = 0
     for i in tf.range(n):
-        for j in tf.range(tf.shape(y_true)[1]):
-            if tf.equal(y_true[i][j][2], 0):
+        for j in tf.range(tf.shape(y)[1]):
+            if tf.equal(y[i][j][2], 0):
                 continue
-            anchor_eq = tf.equal(anchor_indices, tf.cast(y_true[i][j][5], tf.int32))
+            anchor_eq = tf.equal(anchor_indices, tf.cast(y[i][j][5], tf.int32))
             if tf.reduce_any(anchor_eq):
-                box = y_true[i][j][0:4]
-                box_xy = (y_true[i][j][0:2] + y_true[i][j][2:4]) / 2
+                box = y[i][j][0:4]
+                box_xy = (y[i][j][0:2] + y[i][j][2:4]) / 2
                 anchor_idx = tf.cast(tf.where(anchor_eq), tf.int32)
                 grid_xy = tf.cast(box_xy // (1 / grid_size), tf.int32)
                 indexes = indexes.write(
                     idx, [i, grid_xy[1], grid_xy[0], anchor_idx[0][0]]
                 )
                 updates = updates.write(
-                    idx, [box[0], box[1], box[2], box[3], 1, y_true[i][j][4]]
+                    idx, [box[0], box[1], box[2], box[3], 1, y[i][j][4]]
                 )
                 idx += 1
     return tf.tensor_scatter_nd_update(y_true_out, indexes.stack(), updates.stack())
 
 
-def transform_targets(y, anchors, anchor_masks, size):
+def transform_labels(y, anchors, masks, size):
+    """
+    Transform label to a training-friendly form.
+    Args:
+        y: Example label.
+        anchors: Anchors as numpy array.
+        masks: Masks as numpy array.
+        size: Image width or height.
+
+    Returns:
+        Transformed label
+    """
     y_outs = []
     grid_size = size // 32
     anchors = tf.cast(anchors, tf.float32)
@@ -52,13 +57,25 @@ def transform_targets(y, anchors, anchor_masks, size):
     anchor_idx = tf.cast(tf.argmax(iou, axis=-1), tf.float32)
     anchor_idx = tf.expand_dims(anchor_idx, axis=-1)
     y = tf.concat([y, anchor_idx], axis=-1)
-    for anchor_indices in anchor_masks:
-        y_outs.append(transform_targets_for_output(y, grid_size, anchor_indices))
+    for anchor_indices in masks:
+        y_outs.append(transform_label(y, grid_size, anchor_indices))
         grid_size *= 2
     return tuple(y_outs)
 
 
 def serialize_example(image_path, labels, writer):
+    """
+    Serialize training example to tfrecord.
+    Args:
+        image_path: Path to example image.
+        labels: `pd.DataFrame` having `image`, `object_name`, `object_index`,
+            `x0`, `y0`, `x1`, `y1` as columns containing object coordinates in
+             the example's image.
+        writer: `tf.io.TFRecordWriter`.
+
+    Returns:
+        None
+    """
     features = {}
     with open(image_path, 'rb') as image:
         features['image'] = tf.train.Feature(
@@ -89,6 +106,22 @@ def serialize_example(image_path, labels, writer):
 def create_tfrecord(
     output_path, grouped_labels, shards, delete_images=False, verbose=True
 ):
+    """
+    Create tfrecord file(s) given labeled examples.
+    Args:
+        output_path: Path to output .tfrecord file which will have a digit
+            suffix according to `shards` ex: for shards = 2, and output
+            path = example.tfrecord, there will be example-0.tfrecord and
+            example-1.tfrecord.
+        grouped_labels: A list of `pd.DataFrame.groupby` results.
+        shards: Total .tfrecord output files.
+        delete_images: If True, after the serialization of a given example
+            image and labels, the respective image will be deleted.
+        verbose: If False, progress will not be displayed.
+
+    Returns:
+        None
+    """
     filenames = split_filename(output_path, shards)
     total_labels = len(grouped_labels)
     step = total_labels // shards
@@ -113,6 +146,18 @@ def read_example(
     max_boxes,
     image_shape,
 ):
+    """
+    Read single example from .tfrecord.
+    Args:
+        example: `tf.Tensor` having a single serialized example.
+        feature_map: A dictionary mapping feature names to `tf.io` types.
+        class_table: `tf.lookup.StaticHashTable`
+        max_boxes: Maximum total boxes per image.
+        image_shape: input_shape: Input shape passed to `tf.image.resize`
+
+    Returns:
+        image, label
+    """
     features = tf.io.parse_single_example(example, feature_map)
     image = tf.image.decode_png(features['image'], channels=3)
     image = tf.image.resize(image, image_shape)
@@ -139,6 +184,22 @@ def read_tfrecord(
     masks,
     classes_delimiter='\n',
 ):
+    """
+    Read .tfrecord file(s).
+    Args:
+        fp: `file_pattern` passed to `tf.data.Dataset.list_files`
+        classes_file: Path to .txt file containing object names \n delimited.
+        image_shape: Image shape passed to `tf.image.resize`.
+        max_boxes: Maximum total boxes per image.
+        shuffle_buffer_size: `buffer_size` passed to `tf.data.Dataset.shuffle`.
+        batch_size: Batch size passed to `tf.data.Dataset.batch`.
+        anchors: Anchors as numpy array.
+        masks: Masks as numpy array.
+        classes_delimiter: Delimiter used in classes file.
+
+    Returns:
+        `tf.data.Dataset`
+    """
     text_initializer = tf.lookup.TextFileInitializer(
         classes_file, tf.string, 0, tf.int64, -1, delimiter=classes_delimiter
     )
@@ -163,8 +224,8 @@ def read_tfrecord(
         .shuffle(shuffle_buffer_size)
         .map(
             lambda x, y: (
-                transform_images(x, image_shape),
-                transform_targets(y, anchors, masks, image_shape[0]),
+                tf.image.resize(x, image_shape),
+                transform_labels(y, anchors, masks, image_shape[0]),
             )
         )
         .prefetch(tf.data.experimental.AUTOTUNE)

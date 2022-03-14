@@ -214,24 +214,24 @@ about creating folders and matching names, which is handled automatically.
 
 ### **Evaluation options**
 
-| flags            | help                              | required   |
-|:-----------------|:----------------------------------|:-----------|
-| --predicted-data | csv file with predictions         | True       |
-| --actual-data    | csv file with actual data         | True       |
-| --train-tfrecord | Path to training .tfrecord file   | True       |
-| --valid-tfrecord | Path to validation .tfrecord file | True       |
+| flags            | help                              | required |
+|:-----------------|:----------------------------------|:---------|
+| --predicted-data | csv file with detections          | True     |
+| --actual-data    | csv file with actual data         | True     |
+| --train-tfrecord | Path to training .tfrecord file   | True     |
+| --valid-tfrecord | Path to validation .tfrecord file | True     |
 
 ### **Detection options**
 
-| flags         | help                                                     | required   | default   |
-|:--------------|:---------------------------------------------------------|:-----------|:----------|
-| --image       | Path to an image to predict and draw bounding boxes over | -          | -         |
-| --image-dir   | A directory that contains images to predict              | -          | -         |
-| --video       | A video to predict                                       | -          | -         |
-| --codec       | Codec to use for predicting videos                       | -          | mp4v      |
-| --display-vid | Display video during prediction                          | -          | -         |
-| --weights     | Path to trained weights .tf or .weights file             | True       | -         |
-| --output-dir  | Path to directory for saving results                     | -          | -         |
+| flags         | help                                                     | required | default |
+|:--------------|:---------------------------------------------------------|:---------|:--------|
+| --image       | Path to an image to predict and draw bounding boxes over | -        | -       |
+| --image-dir   | A directory that contains images to predict              | -        | -       |
+| --video       | A video to predict                                       | -        | -       |
+| --codec       | Codec to use for predicting videos                       | -        | mp4v    |
+| --display-vid | Display video during detection                           | -        | -       |
+| --weights     | Path to trained weights .tf or .weights file             | True     | -       |
+| --output-dir  | Path to directory for saving results                     | -        | -       |
 
 ## **DarkNet models loaded directly from .cfg files**
 This feature was introduced to replace the old hard-coded model.
@@ -363,11 +363,11 @@ There are 2 currently supported formats that the program is able to read and tra
 
 * **CSV with relative labels that looks like the following example:**
 
-image | object_name | object_index | bx | by | bw | bh | #
---- | --- | --- | --- |--- |--- |--- |--- 
-img1.png | dog | 2 | 0.438616071 | 0.51521164 | 0.079613095	| 0.123015873
-img1.png | car | 1 | 0.177827381 | 0.381613757 | 0.044642857 | 0.091269841
-img2.png | Street Sign | 5 | 0.674107143 | 0.44047619 | 0.040178571 | 0.084656085
+| image    | object_name | object_index | bx          | by          | bw           | bh          | #   |
+|----------|-------------|--------------|-------------|-------------|--------------|-------------|-----|
+| img1.png | dog         | 2            | 0.438616071 | 0.51521164  | 0.079613095	 | 0.123015873 |     |
+| img1.png | car         | 1            | 0.177827381 | 0.381613757 | 0.044642857  | 0.091269841 |     |
+| img2.png | Street Sign | 5            | 0.674107143 | 0.44047619  | 0.040178571  | 0.084656085 |     |
 
 ### **Anchor generation**
 
@@ -650,24 +650,24 @@ Here are the most basic steps to evaluate a trained model:
                    score_threshold=0.1  # defaults to 0.5 but it's okay to be lower
                    )
                    
-2. Read actual and prediction results(that resulted from the training)
+2. Read actual and detection results(that resulted from the training)
 
        actual = pd.read_csv('data/tfrecords/full_data.csv')
-       preds = pd.read_csv('output/full_dataset_predictions.csv')
+       preds = pd.read_csv('output/full_dataset_detections.csv')
        
 3. Calculate mAP(mean average precision):
 
        evaluator.calculate_map(
-                  prediction_data=preds, 
+                  detection_data=preds, 
                   actual_data=actual, 
                   min_overlaps=0.5, 
                   display_stats=True)
                   
 #### **Evaluation command line equivalent**
 
-    yolotf2 evaluate --input-shape "(416, 416, 3)" --model-cfg "yolo_tf2/config/yolo3.cfg" --train-tfrecord "/path/to/train.tfrecord" --valid-tfrecord "/path/to/valid.tfrecord" --score-threshold 0.1 --predicted-data "output/full_dataset_predictions.csv" --actual-data "data/tfrecords/full_data.csv"
+    yolotf2 evaluate --input-shape "(416, 416, 3)" --model-cfg "yolo_tf2/config/yolo3.cfg" --train-tfrecord "/path/to/train.tfrecord" --valid-tfrecord "/path/to/valid.tfrecord" --score-threshold 0.1 --predicted-data "output/full_dataset_detections.csv" --actual-data "data/tfrecords/full_data.csv"
 
-After evaluation, you'll find resulting plots and predictions in the output folder.
+After evaluation, you'll find resulting plots and detections in the output folder.
 
 ### **Detection**
 
@@ -713,7 +713,7 @@ B) Video
     yolotf2 detect --input-shape "(416, 416, 3)" --classes "path/to/classes.txt" --model-cfg "yolo_tf2/config/yolo3.cfg" --score-threshold 0.5 --iou-threshold 0.5 --video "path/to/video" --weights "path/to/weights"
 
 
-After predictions is complete you'll find photos/video
+After detections is complete you'll find photos/video
  in output > detections
 
 ## **Contributing**

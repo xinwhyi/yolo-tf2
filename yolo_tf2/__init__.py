@@ -2,7 +2,7 @@ import sys
 
 __author__ = 'unsignedrant'
 __license__ = 'MIT'
-__version__ = 1.5
+__version__ = 1.0
 
 if sys.version_info < (3, 10):
     print(f'Yolo-tf2 {__version__} requires Python 3.10+')
@@ -20,7 +20,7 @@ dependencies = (
     'imagecorruptions',
     'configparser',
     'cv2',
-    'pyqt5',
+    'PyQt5',
 )
 missing_dependencies = []
 
