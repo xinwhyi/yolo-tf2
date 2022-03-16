@@ -56,7 +56,9 @@ def get_nms(outputs, max_boxes, iou_threshold, score_threshold):
     return boxes, scores, classes, valid_detections
 
 
-def draw_boxes(image, colors, detections, show_scores=True, font_scale=0.6):
+def draw_boxes(
+    image, colors, detections, show_scores=True, font_scale=0.6, font_thickness=2
+):
     """
     Draw bounding boxes over image, displaying detected classes and confidence
     scores in distinct colors.
@@ -68,7 +70,8 @@ def draw_boxes(image, colors, detections, show_scores=True, font_scale=0.6):
             `score` as columns.
         show_scores: If False, object names and confidence scores will not
             be displayed above each bounding box.
-        font_scale: `fontScale` parameter passed to `cv2.cv2.putText`
+        font_scale: `fontScale` parameter passed to `cv2.cv2.putText`.
+        font_thickness: `thickness` parameter passed to `cv2.cv2.putText`.
 
     Returns:
         None
@@ -94,6 +97,7 @@ def draw_boxes(image, colors, detections, show_scores=True, font_scale=0.6):
                 cv2.FONT_HERSHEY_COMPLEX_SMALL,
                 font_scale,
                 color,
+                font_thickness,
             )
 
 
@@ -184,7 +188,7 @@ class YoloDetector(YoloObject):
         for image in image_paths:
             with open(image, 'rb') as raw_image:
                 image = tf.image.decode_png(raw_image.read(), channels=3)
-            image = tf.image.resize(image, self.input_shape[1:-1])
+            image = tf.image.resize(image, self.input_shape[:-1])
             adjusted_images.append(image)
         detections = model.predict(tf.stack(adjusted_images) / 255, **kwargs)
         return self.detections_to_df(image_paths, detections)

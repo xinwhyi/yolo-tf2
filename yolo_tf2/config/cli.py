@@ -1,4 +1,4 @@
-GENERAL = {
+general_args = {
     'input-shape': {
         'help': 'Input shape ex: (m, m, c)',
         'default': (416, 416, 3),
@@ -27,7 +27,7 @@ GENERAL = {
     },
 }
 
-TRAINING = {
+training_args = {
     'weights': {'help': 'Path to trained weights .tf or .weights file'},
     'epochs': {'help': 'Number of training epochs', 'type': int, 'default': 100},
     'learning-rate': {'help': 'Training learning rate', 'type': float, 'default': 1e-3},
@@ -43,6 +43,8 @@ TRAINING = {
         'type': int,
     },
     'labeled-examples': {'help': 'Path to labels .csv file'},
+    'xml-dir': {'help': 'Path to folder containing .xml labels in VOC format'},
+    'image-dir': {'help': 'Path to folder containing images referenced by xml labels'},
     'train-tfrecord': {'help': 'Path to training .tfrecord file'},
     'valid-tfrecord': {'help': 'Path to validation .tfrecord file'},
     'output-dir': {
@@ -51,17 +53,17 @@ TRAINING = {
         'default': '.',
     },
     'delete-images': {
-        'help': 'If specified, dataset images will be deleted upon'
+        'help': 'If specified, dataset images will be deleted upon '
         'being saved to tfrecord.',
         'action': 'store_true',
     },
     'train-shards': {
-        'help': 'Total number of .tfrecord files to split training' 'dataset into',
+        'help': 'Total number of .tfrecord files to split training dataset into',
         'default': 1,
         'type': int,
     },
     'valid-shards': {
-        'help': 'Total number of .tfrecord files to split validation' 'dataset into',
+        'help': 'Total number of .tfrecord files to split validation dataset into',
         'default': 1,
         'type': int,
     },
@@ -69,7 +71,7 @@ TRAINING = {
 }
 
 
-DETECTION = {
+detection_args = {
     'images': {'help': 'Paths of images to detect', 'nargs': '+'},
     'image-dir': {
         'help': 'A directory that contains images to predict',
@@ -85,17 +87,8 @@ DETECTION = {
         'required': True,
     },
     'output-dir': {'help': 'Path to directory for saving results'},
-}
-
-EVALUATION = {
-    'predicted-data': {'help': 'csv file with detections', 'required': True},
-    'actual-data': {'help': 'csv file with actual data', 'required': True},
-    'train-tfrecord': {
-        'help': 'Path to training .tfrecord file',
-        'required': True,
-    },
-    'valid-tfrecord': {
-        'help': 'Path to validation .tfrecord file',
-        'required': True,
+    'evaluation-examples': {
+        'help': 'Path to .csv file with ground truth for evaluation of '
+        'the trained model and mAP score calculation.'
     },
 }

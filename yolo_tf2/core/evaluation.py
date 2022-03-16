@@ -123,10 +123,9 @@ def calculate_stats(
     for object_name in actual['object_name'].drop_duplicates().values:
         stats = dict()
         stats['object_name'] = object_name
-        stats['average_precision'] = (
-            combined[combined['object_name'] == object_name]['average_precision'].sum()
-            * 100
-        )
+        stats['average_precision'] = combined[combined['object_name'] == object_name][
+            'average_precision'
+        ].sum()
         stats['actual'] = actual[actual['object_name'] == object_name].shape[0]
         stats['detections'] = detections[
             detections['object_name'] == object_name

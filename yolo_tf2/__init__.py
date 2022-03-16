@@ -1,5 +1,7 @@
 import sys
 
+from yolo_tf2.api import detect, train
+
 __author__ = 'unsignedrant'
 __license__ = 'MIT'
 __version__ = 1.0

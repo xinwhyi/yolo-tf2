@@ -5,24 +5,23 @@ import pandas as pd
 import tensorflow as tf
 import yolo_tf2
 from yolo_tf2.api import detect, train
-from yolo_tf2.config.cli import DETECTION, EVALUATION, GENERAL, TRAINING
+from yolo_tf2.config.cli import detection_args, general_args, training_args
 
 
-def display_section(name):
+def display_section(section):
     """
     Display a dictionary of command line options
     Args:
-        name: One of ['GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION']
+        section: A dictionary having cli options.
 
     Returns:
         None
     """
-    assert all((GENERAL, TRAINING, DETECTION, EVALUATION))
-    section_frame = pd.DataFrame(eval(name)).T.fillna('-')
+    section_frame = pd.DataFrame(section).T.fillna('-')
     section_frame['flags'] = section_frame.index.values
+    section_frame = section_frame.sort_values(by='flags')
     section_frame['flags'] = section_frame['flags'].apply(lambda c: f'--{c}')
     section_frame = section_frame.reset_index(drop=True).set_index('flags')
-    print(f'\n{name.title()}\n')
     print(
         section_frame[
             [
@@ -44,7 +43,6 @@ def display_commands(display_all=False):
     """
     available_commands = {
         'train': 'Create new or use existing dataset and train a model',
-        'evaluate': 'Evaluate a trained model',
         'detect': 'Detect a folder of images or a video',
     }
     print(f'Yolo-tf2 {yolo_tf2.__version__}')
@@ -57,8 +55,8 @@ def display_commands(display_all=False):
     print('Use yolotf2 <command> -h to see more info about a command', end='\n\n')
     print('Use yolotf2 -h to display all command line options')
     if display_all:
-        for name in ('GENERAL', 'TRAINING', 'EVALUATION', 'DETECTION'):
-            display_section(name)
+        for section in (general_args, training_args, detection_args):
+            display_section(section)
 
 
 def add_args(process_args, parser):
@@ -67,9 +65,6 @@ def add_args(process_args, parser):
     Args:
         process_args: A dictionary of args and options.
         parser: argparse.ArgumentParser
-
-    Returns:
-        parser.
     """
     for arg, options in process_args.items():
         _help = options.get('help')
@@ -91,25 +86,6 @@ def add_args(process_args, parser):
             parser.add_argument(
                 f'--{arg}', help=_help, default=_default, action=_action
             )
-    return parser
-
-
-def add_all_args(parser, process_args, *args):
-    """
-    Add general and process specific args.
-    Args:
-        parser: argparse.ArgumentParser
-        process_args: One of [GENERAL, TRAINING, EVALUATION, DETECTION]
-        *args: Process required args
-
-    Returns:
-        cli_args
-    """
-    parser = add_args(process_args, parser)
-    cli_args = parser.parse_args()
-    for arg in ['model_cfg', 'classes', *args]:
-        assert eval(f'cli_args.{arg}'), f'{arg} is required'
-    return cli_args
 
 
 def train_from_parser(parser):
@@ -121,32 +97,35 @@ def train_from_parser(parser):
     Returns:
         None
     """
-    cli_args = add_all_args(parser, TRAINING)
-    optimizer = tf.keras.optimizers.Adam(cli_args.learning_rate)
+    add_args(training_args, parser)
+    args = parser.parse_args()
+    optimizer = tf.keras.optimizers.Adam(args.learning_rate)
     train(
-        input_shape=cli_args.input_shape,
-        classes=cli_args.classes,
-        model_cfg=cli_args.model_cfg,
-        anchors=cli_args.anchors,
-        masks=cli_args.masks,
-        labeled_examples=cli_args.labeled_examples,
-        batch_size=cli_args.batch_size,
-        max_boxes=cli_args.max_boxes,
-        iou_threshold=cli_args.iou_threshold,
-        score_threshold=cli_args.score_threshold,
-        train_tfrecord=cli_args.train_tfrecord,
-        valid_tfrecord=cli_args.valid_tfrecord,
-        dataset_name=cli_args.dataset_name,
-        output_dir=cli_args.output_dir,
-        valid_frac=cli_args.valid_frac,
-        shuffle_buffer_size=cli_args.shuffle_buffer_size,
-        verbose=not cli_args.quiet,
-        delete_images=cli_args.delete_images,
-        train_shards=cli_args.train_shards,
-        valid_shards=cli_args.valid_shards,
-        epochs=cli_args.epochs,
-        es_patience=cli_args.es_patience,
-        weights=cli_args.weights,
+        input_shape=args.input_shape,
+        classes=args.classes,
+        model_cfg=args.model_cfg,
+        anchors=args.anchors,
+        masks=args.masks,
+        labeled_examples=args.labeled_examples,
+        xml_dir=args.xml_dir,
+        image_dir=args.image_dir,
+        batch_size=args.batch_size,
+        max_boxes=args.max_boxes,
+        iou_threshold=args.iou_threshold,
+        score_threshold=args.score_threshold,
+        train_tfrecord=args.train_tfrecord,
+        valid_tfrecord=args.valid_tfrecord,
+        dataset_name=args.dataset_name,
+        output_dir=args.output_dir,
+        valid_frac=args.valid_frac,
+        shuffle_buffer_size=args.shuffle_buffer_size,
+        verbose=not args.quiet,
+        delete_images=args.delete_images,
+        train_shards=args.train_shards,
+        valid_shards=args.valid_shards,
+        epochs=args.epochs,
+        es_patience=args.es_patience,
+        weights=args.weights,
         optimizer=optimizer,
     )
 
@@ -161,58 +140,47 @@ def detect_from_parser(parser):
     Returns:
         None
     """
-    cli_args = add_all_args(parser, DETECTION)
+    add_args(detection_args, parser)
+    args = parser.parse_args()
     detect(
-        classes=cli_args.classes,
-        anchors=cli_args.anchors,
-        input_shape=cli_args.input_shape,
-        masks=cli_args.masks,
-        model_cfg=cli_args.model_cfg,
-        weights=cli_args.weights,
-        images=cli_args.images,
-        image_dir=cli_args.image_dir,
-        video=cli_args.video,
-        max_boxes=cli_args.max_boxes,
-        iou_threshold=cli_args.iou_threshold,
-        score_threshold=cli_args.score_threshold,
-        batch_size=cli_args.batch_size,
-        verbose=not cli_args.quiet,
-        output_dir=cli_args.output_dir,
-        codec=cli_args.codec,
-        display_vid=cli_args.display_vid,
+        classes=args.classes,
+        anchors=args.anchors,
+        input_shape=args.input_shape,
+        masks=args.masks,
+        model_cfg=args.model_cfg,
+        weights=args.weights,
+        images=args.images,
+        image_dir=args.image_dir,
+        video=args.video,
+        max_boxes=args.max_boxes,
+        iou_threshold=args.iou_threshold,
+        score_threshold=args.score_threshold,
+        batch_size=args.batch_size,
+        verbose=not args.quiet,
+        output_dir=args.output_dir,
+        codec=args.codec,
+        display_vid=args.display_vid,
+        evaluation_examples=args.evaluation_examples,
     )
-
-
-def evaluate(parser):
-    """
-    Parse cli options, create an evaluation instance and evaluate.
-    Args:
-        parser: argparse.ArgumentParser
-
-    Returns:
-        None
-    """
-    cli_args = add_all_args(parser, EVALUATION)
 
 
 def execute():
     """
-    Train or evaluate or detect based on cli args.
+    Execute training/detection/evaluation.
     Returns:
         None
     """
     valid_commands = {
-        'train': ('TRAINING', TRAINING, train_from_parser),
-        'evaluate': ('EVALUATION', EVALUATION, evaluate),
-        'detect': ('DETECTION', DETECTION, detect_from_parser),
+        'train': (training_args, train_from_parser),
+        'detect': (detection_args, detect_from_parser),
     }
-    if (total := len(cli_args := sys.argv)) == 1:
+    if (total := len(args := sys.argv)) == 1:
         display_commands()
         return
-    if (command := cli_args[1]) in valid_commands and total == 2:
+    if (command := args[1]) in valid_commands and total == 2:
         display_section(valid_commands[command][0])
         return
-    if (help_flags := any(('-h' in cli_args, '--help' in cli_args))) and total == 2:
+    if (help_flags := any(('-h' in args, '--help' in args))) and total == 2:
         display_commands(True)
         return
     if total == 3 and command in valid_commands and help_flags:
@@ -223,8 +191,8 @@ def execute():
         return
     parser = argparse.ArgumentParser()
     del sys.argv[1]
-    parser = add_args(GENERAL, parser)
-    valid_commands[command][2](parser)
+    add_args(general_args, parser)
+    valid_commands[command][1](parser)
 
 
 if __name__ == '__main__':

@@ -3,9 +3,11 @@ from pathlib import Path
 
 import cv2
 import pandas as pd
+from yolo_tf2.core.evaluation import calculate_map
 from yolo_tf2.core.inference import YoloDetector, draw_boxes
 from yolo_tf2.core.models import YoloParser
 from yolo_tf2.core.training import YoloTrainer
+from yolo_tf2.utils.common import parse_voc
 
 
 def train(
@@ -15,6 +17,8 @@ def train(
     anchors,
     masks,
     labeled_examples=None,
+    xml_dir=None,
+    image_dir=None,
     batch_size=8,
     max_boxes=100,
     iou_threshold=0.5,
@@ -45,6 +49,8 @@ def train(
         masks: Path to .txt file containing x,y,z triplets \n delimited.
         labeled_examples: Path to .csv having `image`, `object_name`,
             `object_index`, `x0`, `y0`, `x1`, `y1` as columns.
+        xml_dir: Path to folder containing .xml labels in VOC format.
+        image_dir: Path to folder containing images referenced by xml labels.
         batch_size: Batch size passed to `tf.data.Dataset.batch`
         max_boxes: Maximum total boxes per image.
         iou_threshold: Percentage above which detections overlapping with
@@ -71,8 +77,18 @@ def train(
     Returns:
         A History object, the result of `tf.keras.Model.fit`.
     """
+    assert (
+        labeled_examples
+        or (xml_dir and image_dir)
+        or (train_tfrecord and valid_tfrecord)
+    ), (
+        f'One of `labeled_examples or (`xml_dir` and `image_dir`) or '
+        f'(`train_tfrecord` and `valid_tfrecord`) should be specified.'
+    )
     if labeled_examples:
         labeled_examples = [*pd.read_csv(str(labeled_examples)).groupby('image')]
+    elif xml_dir:
+        labeled_examples = [*parse_voc(xml_dir, image_dir).groupby('image')]
     trainer = YoloTrainer(
         input_shape=input_shape,
         batch_size=batch_size,
@@ -101,9 +117,9 @@ def train(
 
 
 def detect(
+    input_shape,
     classes,
     anchors,
-    input_shape,
     masks,
     model_cfg,
     weights,
@@ -118,15 +134,16 @@ def detect(
     output_dir='.',
     codec='mp4v',
     display_vid=False,
+    evaluation_examples=None,
 ):
     """
     Perform detection on given images/directory of images/video, save
     results to image/video.
     Args:
-        classes: Path to .txt file containing object names \n delimited.
-        anchors: Path to .txt file containing x,y pairs \n delimited.
         input_shape: Input shape passed to `tf.image.resize` and
             `keras.engine.input_layer.Input`.
+        classes: Path to .txt file containing object names \n delimited.
+        anchors: Path to .txt file containing x,y pairs \n delimited.
         masks: Path to .txt file containing x,y,z triplets \n delimited.
         model_cfg: Path to .cfg DarkNet file.
         weights: Path to pretrained model weights to load.
@@ -143,7 +160,8 @@ def detect(
         output_dir: Path to directory to which detection images/video will be saved.
         codec: Codec passed to `cv2.VideoWriter`.
         display_vid: If True, the given video will be rendered during detection.
-
+        evaluation_examples: Path to .csv file with ground truth for evaluation of
+            the trained model and mAP score calculation.
     Returns:
         None
     """
@@ -183,7 +201,19 @@ def detect(
         detections = detector.detect_images(
             images, model, verbose=verbose, batch_size=batch_size
         )
+        detections.to_csv((Path(output_dir) / 'detections.csv').as_posix(), index=False)
         for image_path, image_detections in detections.groupby('image'):
             image = cv2.imread(image_path)
             draw_boxes(image, colors, image_detections)
             cv2.imwrite((Path(output_dir) / Path(image_path).name).as_posix(), image)
+        if evaluation_examples:
+            actual = pd.read_csv(evaluation_examples)
+            unknown_images = set(target_images) - set(actual['image'].values)
+            assert (
+                not unknown_images
+            ), f'Failed to find the following images in actual: {unknown_images}'
+            stats = calculate_map(actual, detections, iou_threshold)
+            stats.to_csv((Path(output_dir) / 'mAP scores.csv').as_posix(), index=False)
+            if verbose:
+                print(stats)
+                print(f'mAP: {stats["average_precision"].mean()}')
