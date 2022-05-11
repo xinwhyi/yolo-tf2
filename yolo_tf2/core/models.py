@@ -304,17 +304,14 @@ class YoloParser:
         self.total_layers += 1
         self.model_layers.append(self.previous_layer)
 
-    def from_cfg(
-        self,
-        fp,
-        input_shape,
-    ):
+    def from_cfg(self, fp, input_shape, v4=False):
         """
         Create `tf.keras.Model` from .cfg file.
         Args:
             fp: Path to .cfg DarkNet file.
             input_shape: Input shape passed to `keras.engine.input_layer.Input`
-
+            v4: If `fp` is referring to a yolov4 configuration, output layers
+                will be reversed.
         Returns:
             Resulting `tf.keras.Model`.
         """
@@ -323,4 +320,6 @@ class YoloParser:
         for section in self.cfg_parser.sections():
             self.create_section(section)
         output_layers = [layer for layer in self.model_layers if 'lambda' in layer.name]
+        if v4:
+            output_layers = output_layers[::-1]
         return Model(x0, output_layers)

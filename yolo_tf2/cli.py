@@ -127,6 +127,7 @@ def train_from_parser(parser):
         es_patience=args.es_patience,
         weights=args.weights,
         optimizer=optimizer,
+        v4=args.v4,
     )
 
 
@@ -161,6 +162,7 @@ def detect_from_parser(parser):
         codec=args.codec,
         display_vid=args.display_vid,
         evaluation_examples=args.evaluation_examples,
+        v4=args.v4,
     )
 
 

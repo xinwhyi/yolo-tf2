@@ -37,6 +37,7 @@ def train(
     es_patience=3,
     weights=None,
     optimizer='adam',
+    v4=False,
 ):
     """
     Train yolo model on existing/yet to create dataset.
@@ -73,6 +74,8 @@ def train(
         es_patience: Early stopping patience.
         weights: Path to pretrained model weights to load.
         optimizer: Optimizer passed to `tf.keras.Model.compile`.
+        v4: If `model_cfg` is referring to a yolov4 configuration, output layers
+            will be reversed.
 
     Returns:
         A History object, the result of `tf.keras.Model.fit`.
@@ -110,6 +113,7 @@ def train(
         delete_tfrecord_images=delete_images,
         training_dataset_shards=train_shards,
         valid_dataset_shards=valid_shards,
+        v4=v4,
     )
     return trainer.fit(
         epochs=epochs, es_patience=es_patience, weights=weights, optimizer=optimizer
@@ -135,6 +139,7 @@ def detect(
     codec='mp4v',
     display_vid=False,
     evaluation_examples=None,
+    v4=False,
 ):
     """
     Perform detection on given images/directory of images/video, save
@@ -162,6 +167,8 @@ def detect(
         display_vid: If True, the given video will be rendered during detection.
         evaluation_examples: Path to .csv file with ground truth for evaluation of
             the trained model and mAP score calculation.
+        v4: If `model_cfg` is referring to a yolov4 configuration, output layers
+            will be reversed.
     Returns:
         None
     """
@@ -179,7 +186,7 @@ def detect(
         object_name: tuple([random.randint(0, 255) for _ in range(3)])
         for object_name in detector.class_map.values()
     }
-    model = YoloParser(len(detector.class_map)).from_cfg(model_cfg, input_shape)
+    model = YoloParser(len(detector.class_map)).from_cfg(model_cfg, input_shape, v4)
     model.load_weights(weights).expect_partial()
     target_images = []
     if images:

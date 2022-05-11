@@ -25,6 +25,10 @@ general_args = {
         'help': 'If specified, verbosity is set to False',
         'action': 'store_true',
     },
+    'v4': {
+        'help': 'If yolov4 configuration is used, this should be specified',
+        'action': 'store_true',
+    },
 }
 
 training_args = {

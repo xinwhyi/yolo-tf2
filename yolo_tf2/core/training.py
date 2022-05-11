@@ -124,6 +124,7 @@ class YoloTrainer(Trainer, YoloObject):
         max_boxes,
         iou_threshold,
         score_threshold,
+        v4=False,
         **kwargs,
     ):
         """
@@ -156,6 +157,7 @@ class YoloTrainer(Trainer, YoloObject):
         )
         self.classes_file = classes
         self.model_configuration = model_configuration
+        self.v4 = v4
 
     def write_tfrecord(self, fp, data, shards):
         """
@@ -208,7 +210,4 @@ class YoloTrainer(Trainer, YoloObject):
             `tf.keras.Model`.
         """
         parser = YoloParser(len(self.classes))
-        return parser.from_cfg(
-            self.model_configuration,
-            self.input_shape,
-        )
+        return parser.from_cfg(self.model_configuration, self.input_shape, self.v4)

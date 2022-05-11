@@ -121,18 +121,19 @@ It requires python 3.10+, is not platform specific and is MIT licensed.
 
 #### **General options**
 
-| flags             | help                                    | required   | default       |
-|:------------------|:----------------------------------------|:-----------|:--------------|
-| --anchors         | Path to anchors .txt file               | True       | -             |
-| --batch-size      | Training/detection batch size           | -          | 8             |
-| --classes         | Path to classes .txt file               | True       | -             |
-| --input-shape     | Input shape ex: (m, m, c)               | -          | (416, 416, 3) |
-| --iou-threshold   | iou (intersection over union) threshold | -          | 0.5           |
-| --masks           | Path to masks .txt file                 | True       | -             |
-| --max-boxes       | Maximum boxes per image                 | -          | 100           |
-| --model-cfg       | Yolo DarkNet configuration .cfg file    | True       | -             |
-| --quiet           | If specified, verbosity is set to False | -          | -             |
-| --score-threshold | Confidence score threshold              | -          | 0.5           |
+| flags             | help                                                      | required   | default       |
+|:------------------|:----------------------------------------------------------|:-----------|:--------------|
+| --anchors         | Path to anchors .txt file                                 | True       | -             |
+| --batch-size      | Training/detection batch size                             | -          | 8             |
+| --classes         | Path to classes .txt file                                 | True       | -             |
+| --input-shape     | Input shape ex: (m, m, c)                                 | -          | (416, 416, 3) |
+| --iou-threshold   | iou (intersection over union) threshold                   | -          | 0.5           |
+| --masks           | Path to masks .txt file                                   | True       | -             |
+| --max-boxes       | Maximum boxes per image                                   | -          | 100           |
+| --model-cfg       | Yolo DarkNet configuration .cfg file                      | True       | -             |
+| --quiet           | If specified, verbosity is set to False                   | -          | -             |
+| --score-threshold | Confidence score threshold                                | -          | 0.5           |
+| --v4              | If yolov4 configuration is used, this should be specified | -          | -             |
 
 #### **Training options**
 
@@ -314,7 +315,7 @@ anchors with process visualization.
 ![GitHub Logo](/assets/true_false.png)
 
 You can always visualize different stages of the program using my other repo 
-[labelpix](https://github.com/unsignedrant/labelpix) which is tool for drawing 
+[labelpix](https://github.com/unsignedrant/labelpix) which is a tool for drawing 
 bounding boxes, but can also be used to visualize bounding boxes over images using 
 csv files in the format mentioned [here](#csv-file).
 
@@ -454,6 +455,8 @@ The following files are expected:
   * Image dir
   * Video
 
+**Note: For yolov4 configuration, `v4=True` or `--v4` should be specified**
+
 #### **Detection code example**
 
 Detection is available through [yolo_tf2.detect](/yolo_tf2/api.py) api. For more info about
@@ -476,7 +479,10 @@ other parameters, check the docstrings, available through `help()`
 
     yolotf2 detect --input-shape 608 608 3 --classes /path/to/classes.txt --model-cfg /path/to/darknet/file.cfg --anchors /path/to/anchors.txt --masks /path/to/masks.txt --weights /path/to/trained_weights.tf --images /path/to/image1 /path/to/image2 --output-dir /path/to/detection-output-dir 
 
-**Note:** To detect video, `video` or `--video` needs to be passed instead
+**Notes:** 
+
+* To detect video, `video` or `--video` needs to be passed instead
+* For yolov4 configuration, `v4=True` or `--v4` should be specified**
 
 ### **Evaluation**
  
