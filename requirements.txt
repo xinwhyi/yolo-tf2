@@ -13,3 +13,4 @@ scipy==1.8.0
 PyQt5==5.15.6
 tabulate==0.8.9
 keras==2.8.0
+python==3.8.0
